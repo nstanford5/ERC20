@@ -1,6 +1,6 @@
 import * as backend from './build/index.main.mjs';
 import { loadStdlib } from "@reach-sh/stdlib";
-const stdlib = loadStdlib(process.env);
+const stdlib = loadStdlib({REACH_NO_WARN: 'Y'});
 
 if(stdlib.connector !== 'ETH'){
   console.log('Sorry, this program is only compiled on ETH for now');

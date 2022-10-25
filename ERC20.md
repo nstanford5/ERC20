@@ -1,9 +1,9 @@
 # Workshop: ERC20 in Reach
 
-This workshop will demonstrate the ERC20 spec in Reach.
+This workshop will demonstrate the [ERC20 spec](https://eips.ethereum.org/EIPS/eip-20) in [Reach](https://docs.reach.sh/#reach-top).
 
 This workshop assumes prior knowledge of Reach -- we recommend completing the
-Rock, Paper, Scissors tutorial and the RSVP tutorial.
+[Rock, Paper, Scissors](https://docs.reach.sh/tut/rps/) tutorial and the [RSVP](https://docs.reach.sh/tut/rsvp/) tutorial.
 
 This workshop assumes you are working in a project folder called `erc20`
 `$ mkdir erc20`
@@ -536,6 +536,50 @@ assertEq((await ctc0.v.decimals())[1], meta.decimals, "decimals()");
 
 console.log("Finished testing!");
 ```
+
+Now we can run our application.
+
+First set the connector mode to `ETH` with `export REACH_CONNECTOR_MODE=ETH`
+
+Then `../reach run` and you see output that looks like this
+`
+> index
+> node --experimental-modules --unhandled-rejections=strict index.mjs
+
+Starting up...
+Completed startMeUp
+finised getting contract handles
+Starting tests...
+assertEvent complete
+assertEvent call complete
+assertBalances complete
+assertBalances call complete
+assertFail2 call complete
+assertEvent complete
+transfer complete
+transfer call complete
+assertEvent complete
+assertEvent complete
+transferFrom complete is true
+transferFrom call complete
+assertEvent complete
+transfer complete
+assertBalances complete
+assertEvent complete
+approve complete
+assertBalances complete
+assertEvent complete
+assertEvent complete
+transferFrom complete is true
+assertBalances complete
+assertEvent complete
+assertEvent complete
+transferFrom complete is true
+assertBalances complete
+assertEvent complete
+approve complete
+Finished testing!
+`
 
 Th-th-th-that's all, folks!
 
