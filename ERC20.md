@@ -46,7 +46,7 @@ export const main = Reach.App(() => {
 ```
 This structure will allow a single address to bind to `D` and allow `ERC20` functions to be called by other contracts or off-chain by frontends representing any number of different users.
 
-We also want to define some Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of the Reach programs significant actions.
+We also want to define some Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of the significant actions in our Reach program.
 ###### index.rsh
 ```js
 'reach 0.1'
@@ -68,7 +68,7 @@ export const main = Reach.App(() => {
 });
 ```
 
-The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we'll add some data definitions to our `Participant`
+The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we add some data definitions to our `Participant`
 ###### index.rsh
 ```js
   const D = Participant('Deployer', {
@@ -82,7 +82,7 @@ The application starts with the Deployer providing the token metadata and deploy
     deployed: Fun([Contract], Null),
   });
 ```
-We define the metadata as an Object with specified fields. 
+We define the metadata as an Object with specified fields. More on [StringDyn](https://docs.reach.sh/rsh/compute/#rsh_StringDyn)
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
