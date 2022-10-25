@@ -21,6 +21,8 @@ Working directory
 Our application is going to implement the ERC20 token spec and allow 
 functions to be called indefinitely. We'll implement transfer and approval functions for users.
 
+In this program design we'll maintain an ownership database of our token. There won't be any external token transfers, we'll save that for the next iteration.
+
 ## Who are the users in our application?
 There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`.
 
