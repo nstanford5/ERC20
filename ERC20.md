@@ -30,7 +30,7 @@ There must be one ```Participant``` to deploy the contract and the other users a
 The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with some special considerations.
 
 Let's define our users.
-
+###### index.rsh
 ```js
 'reach 0.1'
 
@@ -45,7 +45,7 @@ export const main = Reach.App(() => {
 });
 ```
 We also want to define some Views and Events that make blockchain information more easily accessible to the frontend
-
+###### index.rsh
 ```js
 'reach 0.1'
 
@@ -67,7 +67,7 @@ export const main = Reach.App(() => {
 ```
 
 The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we'll add some data definitions to our `Participant`
-
+###### index.rsh
 ```js
   const D = Participant('Deployer', {
     meta: Object({
@@ -85,7 +85,7 @@ We define the metadata as an Object with specified fields. Then we define a `dep
 Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`
 
 We'll add this code to our `ERC20 API`
-
+###### index.rsh
 ```js
   const ERC20 = API({
     transfer: Fun([Addresss, UInt], Bool),
@@ -97,7 +97,7 @@ We'll add this code to our `ERC20 API`
 Now let's define our Views and Events. 
 
 Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make available would be token metadata, token balances and token allowances. We'll add this code to our `View`
-
+###### index.rsh
 ```js
   const V = View({
     name: Fun([], StringDyn),
@@ -112,7 +112,7 @@ Views make information on the blockchain easier to access, they do not provide a
 Events emit at significant actions of the program. Events allow monitoring of Reach program actions, they contain a `when` and a `what`. `when` is the time the Event was emitted from the consensus network, `what` is an array of values from the Event.
 
 The significant actions of our program are `Transfer` and `Approval`. We'll add this code to our `Events`
-
+###### index.rsh
 ```js
   const E = Events({
     Transfer: [Address, Address, UInt],
@@ -124,7 +124,7 @@ The significant actions of our program are `Transfer` and `Approval`. We'll add 
 That is all for our data definitions, so we call `init()` to start stepping through the states of our program.
 
 As noted earlier, the first step is to have the `Deployer` provide the token metadata and actually deploy the contract with the first publish.
-
+###### index.rsh
 ```js
   D.only(() => {
     const {name, symbol, decimals, totalSupply, zeroAddress} = declassify(interact.meta);
@@ -135,13 +135,13 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
 ```
 
 Then the `Deployer` notifies the frontend that the contract is deployed
-
+###### index.rsh
 ```js
   D.interact.deployed(getContract());
 ```
 
 Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain. But it is more difficult to access, especially to the blockchain layman. Setting the token metadata to the Views, provides an easily accessible window into the consensus state.
-
+###### index.rsh
 ```js
   V.name.set(() => name);
   V.symbol.set(() => symbol);
@@ -150,7 +150,7 @@ Now we can set the Views related to our token metadata. Remember, this informati
 ```
 
 Next we'll create the maps that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. As this DApp has been designed we will use the `balances` map as our database of ownership.
-
+###### index.rsh
 ```js
   const balances = new Map(Address, UInt);
   const allowances = new Map(Tuple(Address, Address), UInt);
@@ -159,7 +159,7 @@ Next we'll create the maps that hold balances and allowances for transfer. Then 
 ```
 
 Next we'll emit the Event for Transfer to the zero address
-
+###### index.rsh
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
 ```
@@ -449,7 +449,7 @@ console.log('assertEvent complete');
 Now we'll define functions to use our `api` calls and inclue some calls to our `assert` functions.
 
 First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`
-###### index.rsh
+###### index.mjs
 ```js
 const transfer = async (fromAcc, toAcc, amt) => {
   await ctc(fromAcc).a.transfer(toAcc.getAddress(), amt);
@@ -466,7 +466,7 @@ const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
 ```
 
 Now for the `a.approve` function. Notice these functions are calling our previously defined `assert` functions for verification.
-###### index.rsh
+###### index.mjs
 ```js
 const approve = async (fromAcc, spenderAcc, amt) => {
   await ctc(fromAcc).a.approve(spenderAcc.getAddress(), amt);
@@ -478,7 +478,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 Finally, we can test our program!
 
 We'll add a lot of tests to our various functions to test pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
-###### index.rsh
+###### index.mjs
 ```js
 // start testing
 console.log("starting tests");
