@@ -84,7 +84,7 @@ The application starts with the Deployer providing the token metadata and deploy
 ```
 We define the metadata as an Object with specified fields. 
 
-Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
+Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
 Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`
 
@@ -138,13 +138,15 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
   });
 ```
 
-Then the `Deployer` notifies the frontend that the contract is deployed
+Then the `Deployer` notifies the frontend that the contract is deployed. `getContract()` will return the contract value, it cannot be called until after the first `publish`
 ###### index.rsh
 ```js
   D.interact.deployed(getContract());
 ```
 
-Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain. But it is more difficult to access, especially to the blockchain layman. Setting the token metadata to the Views, provides an easily accessible window into the consensus state.
+Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain. But it is primarily acessible with some difficulty, Views make this as simple as defining a function to provide the information to the frontend. 
+
+Setting the token metadata to the Views, provides an easily accessible window into the consensus state.
 ###### index.rsh
 ```js
   V.name.set(() => name);
@@ -161,8 +163,9 @@ Next we'll create the maps that hold balances and allowances for transfer. Then 
 
   balances[D] = totalSupply;
 ```
+Then we set the balance map for the `Deployer` to the `totalSupply`
 
-Next we'll emit the Event for Transfer to the zero address
+Next we'll emit the Event for Transfer to the zero address.
 ###### index.rsh
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
@@ -180,16 +183,16 @@ const stdlib = loadStdlib(process.env);
 if(stdlib.connector !== ETH){
   console.log('Sorry, this program only works on EVM networks');
   process.exit(0);
-}
+};
 ```
 We'll demonstrate using the frontend standard library to check `assert` statements. It will be useful to define a few helper constants. 
 ###### index.mjs
 ```js
-const bigNumberify = stdlib.bigNumberify;
 const assert = stdlib.assert;
+const bigNumberify = stdlib.bigNumberify;
 ```
 
-Next let's write some test functions. We want to test that they pass when we assume of course, but we also want to check our assumptions about when we expect them to fail.
+Next let's write some test functions. We of course want to test that they pass when we assume they will, but we also want to check our assumptions about when we expect them to fail.
 ###### index.mjs
 ```js
 const assertFail = async (promise) => {
@@ -245,7 +248,7 @@ const [acc0, acc1, acc2, acc3] = accs;
 const [addr0, addr1, addr2, addr3] = accs.map(a => a.getAddress());
 ```
 
-Now we can setup our token metadata in an object.
+Now we can setup our token metadata in an object to eventually be passed to the backend.
 ###### index.mjs
 ```js
 const totalSupply = 1000_00;
@@ -268,7 +271,7 @@ const ctcInfo = await ctc0.getInfo();
 const ctc = (acc) => acc.contract(backend, ctcInfo);
 ```
 
-We have all of our users created now and the contract is now deployed. Now we can go back to our `.rsh` file.
+We have all of our users created now and the contract is deployed. Now we can go back to our `.rsh` file.
 
 The next thing we want to do is create the functionality for our `apis`. Given that we have many users who need to do something, we want a `parallelReduce`. 
 
@@ -280,7 +283,7 @@ parallelReduce is a powerful data structure, but in this case we'll use it mostl
 
 The `define` block of our parallelReduce will be used to define some helper functions.
 
-First, a function to check the balance and setting the related View
+First, a function to check the balance and set the related View
 ###### index.rsh
 ```js
   .define(() => {
@@ -292,7 +295,7 @@ First, a function to check the balance and setting the related View
   });
 ```
 
-Expanding on the `.define` block we want to also set an allowed amount of tokens and the related View.
+Expanding on the `.define` block we want to also set an allowed amount of tokens and its related View.
 ###### index.rsh
 ```js
   .define(() => {
@@ -309,28 +312,28 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
   });
 ```
 
-The last piece we need to add to our `.define` block is the `transfer_` function. We suffix with `_` because `transfer` is a reserved word in Reach. This is one of the significant events defined in our `Events`, so we'll also emit an Event here.
+The last piece we need to add to our `.define` block is the `transfer_` function. We suffix with `_` because `transfer` is a reserved word in Reach. This is one of the significant events defined in our `Events`, so we also emit an Event here.
 ###### index.rsh
 ```js
   .define(() => {
     const balanceOf = (owner) => {
       const m_bal = balances[owner];
       return fromSome(m_bal, 0);
-    }
+    };
     V.balanceOf.set(balanceOf);
     const allowance = (owner, spender) => {
       const m_bal = allowance[[owner, spender]];
       return fromSome(m_bal, 0);
-    }
+    };
     V.allowance.set(allowance);
     const transfer_ = (from_, to, amount) => {
       balances[from_] = balanceOf(from_) - amount;
       balances[to] = balanceOf(to) + amount;
       E.Transfer(from_, to, amount);
-    }
+    };
   });// end of define block
 ```
-The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we will set an infinite loop
+The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we set an infinite loop
 ###### index.rsh
 ```js
   .invariant(balance() == 0)
@@ -339,7 +342,7 @@ The contract account will not actually recieve tokens, so we set a simple `invar
 
 Now that our loop pattern is setup, we can define our `API` member functions
 
-We'll check for a zeroAddress transfer and verify the balance is not greater than the amount.
+`transfer` will check for a zeroAddress transfer and verify the balance is not greater than the amount.
 ###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
@@ -348,7 +351,7 @@ We'll check for a zeroAddress transfer and verify the balance is not greater tha
   })
 ```
 
-The next piece to add to this function is the `return` call. In this case we'll omit the `PAY_EXPR` and track no values. We return Boolean here to match the ERC20 spec
+The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and track no values. We return a Boolean here to match the ERC20 spec
 ###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
@@ -361,7 +364,7 @@ The next piece to add to this function is the `return` call. In this case we'll 
     }];
   })
 ```
-The `API` member function `transfer` is now complete.
+The `API` member function `transfer` is now complete. Note, we are allowed to use `transfer` as an identifier for this function because it is an external function, Reach knows this is not for transferring from the contract account.
 
 Next is `transferFrom`, again we start with dynamic assertions checking for the `zeroAddress`, balances and allowances
 ###### index.rsh
@@ -403,7 +406,7 @@ The last function to implement is the `API` member function `approve`. We'll sta
   })
 ```
 
-Then we add an update to the `allowances` map and emit an `Approval` Event. We'll add this code to our `approve` function.
+Then we add an update to the `allowances` map and emit an `Approval` Event. This code will be added to our `approve` function.
 ###### index.rsh
 ```js
   .api_(ERC20.approve, (spender, amount) => {
@@ -452,7 +455,7 @@ console.log('assertEvent complete');
 
 Now we'll define functions to use our `api` calls and inclue some calls to our `assert` functions.
 
-First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`
+First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`.
 ###### index.mjs
 ```js
 const transfer = async (fromAcc, toAcc, amt) => {
@@ -468,8 +471,9 @@ const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
   console.log(`transferFrom complete is ${b}`);
 };
 ```
+Notice these functions are calling our previously defined `assert` functions for verification using the frontend standard library.
 
-Now for the `a.approve` function. Notice these functions are calling our previously defined `assert` functions for verification.
+Now for the `a.approve` function. 
 ###### index.mjs
 ```js
 const approve = async (fromAcc, spenderAcc, amt) => {
@@ -479,9 +483,9 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 }
 ```
 
-Finally, we can test our program!
+Finally, we can add some tests our program!
 
-We'll add a lot of tests to our various functions to test pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
+We will test to our various functions for pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
 ###### index.mjs
 ```js
 // start testing
@@ -725,8 +729,8 @@ if(stdlib.connector !== 'ETH'){
 }
 console.log("Starting up...");
 
-const bigNumberify = stdlib.bigNumberify;
 const assert = stdlib.assert;
+const bigNumberify = stdlib.bigNumberify;
 
 const assertFail = async (promise) => {
   try {
