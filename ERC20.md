@@ -2,10 +2,10 @@
 
 This workshop will demonstrate the [ERC20 spec](https://eips.ethereum.org/EIPS/eip-20) in [Reach](https://docs.reach.sh/#reach-top).
 
-This workshop assumes prior knowledge of Reach -- we recommend completing the
+It assumes prior knowledge of Reach -- we recommend completing the
 [Rock, Paper, Scissors](https://docs.reach.sh/tut/rps/) tutorial and the [RSVP](https://docs.reach.sh/tut/rsvp/) tutorial.
 
-This workshop assumes you are working in a project folder called `erc20`
+It also assumes you are working in a project folder called `erc20`
 `$ mkdir erc20`
 `cd erc20`
 
