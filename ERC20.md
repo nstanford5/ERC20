@@ -5,21 +5,21 @@ This workshop will demonstrate the ERC20 spec in Reach.
 This workshop assumes prior knowledge of Reach -- we recommend completing the
 Rock, Paper, Scissors tutorial and the RSVP tutorial.
 
-This workshop assumes you are working in a project folder called ```erc20```
-```$ mkdir erc20```
-```cd erc20```
+This workshop assumes you are working in a project folder called `erc20`
+`$ mkdir erc20`
+`cd erc20`
 
 Create your files
-```index.rsh```
-```index.mjs```
+`touch index.rsh`
+`touch index.mjs`
 
 Working directory
-```~/Reach/erc20```
+`~/Reach/erc20`
 
 
 ## Problem Analysis
 Our application is going to implement the ERC20 token spec and allow 
-functions to be called indefinitely.
+functions to be called indefinitely. We'll implement transfer and approval functions for users.
 
 ## Who are the users in our application?
 There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`.
