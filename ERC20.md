@@ -542,7 +542,7 @@ Now we can run our application.
 First set the connector mode to `ETH` with `export REACH_CONNECTOR_MODE=ETH`
 
 Then `../reach run` and you see output that looks like this
-`
+```
 > index
 > node --experimental-modules --unhandled-rejections=strict index.mjs
 
@@ -579,7 +579,7 @@ assertBalances complete
 assertEvent complete
 approve complete
 Finished testing!
-`
+```
 
 Th-th-th-that's all, folks!
 
