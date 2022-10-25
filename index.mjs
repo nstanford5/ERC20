@@ -1,10 +1,3 @@
-/**
- * Testing Notes:
- * Each action is expected to omit an event. When we invoke the action
- * we assert that the event has been emitted.
- * 
- * I think we should use stdlib.transfer in the frontend to actually transfer the tokens
- */
 import * as backend from './build/index.main.mjs';
 import { loadStdlib } from "@reach-sh/stdlib";
 const stdlib = loadStdlib(process.env);
@@ -15,11 +8,9 @@ if(stdlib.connector !== 'ETH'){
 }
 console.log("Starting up...");
 
-// stdlib helper constants
 const bigNumberify = stdlib.bigNumberify;
 const assert = stdlib.assert;
 
-// function to prove asserts we think should fail
 const assertFail = async (promise) => {
   try {
     await promise;
@@ -28,8 +19,7 @@ const assertFail = async (promise) => {
   }
   throw "Expected exception but did not catch one";
 }
-// assert these two values equal this context
-// if true, return -- else return false
+
 const assertEq = (a, b, context = "assertEq") => {
   if (a === b) return;
   try {
@@ -40,8 +30,6 @@ const assertEq = (a, b, context = "assertEq") => {
   assert(false, `${context}: ${a} == ${b}`);
 }
 
-// functions for deploying the contract and providing parameters
-// catches error messages
 const startMeUp = async (ctc, meta) => {
   const flag = "startup success throw flag"
   try {
@@ -58,17 +46,11 @@ const startMeUp = async (ctc, meta) => {
   }
 }
 
-// constant for the zeroAddress transfer
 const zeroAddress = "0x" + "0".repeat(40);
-// creating new test accounts
 const accs = await stdlib.newTestAccounts(4, stdlib.parseCurrency(100));
-// array of new accounts
 const [acc0, acc1, acc2, acc3] = accs;
-// array of account addresses
 const [addr0, addr1, addr2, addr3] = accs.map(a => a.getAddress());
 
-// fixed constants
-// token metadata
 const totalSupply = 1000_00;
 const decimals = 2;
 const meta = {
@@ -79,18 +61,14 @@ const meta = {
   zeroAddress,
 }
 
-// contract handle
 const ctc0 = acc0.contract(backend);
-// deploy contract
 await startMeUp(ctc0, meta);
 console.log('Completed startMeUp');
-// get contract info
+
 const ctcinfo = await ctc0.getInfo();
-// function for contract info for different accounts
 const ctc = (acc) => acc.contract(backend, ctcinfo);
 console.log('finised getting contract handles');
 
-// assert the balances are equal to the view settings
 const assertBalances = async (bal0, bal1, bal2, bal3) => {
   assertEq(bal0, (await ctc0.v.balanceOf(acc0.getAddress()))[1]);
   assertEq(bal1, (await ctc0.v.balanceOf(acc1.getAddress()))[1]);
@@ -98,31 +76,27 @@ const assertBalances = async (bal0, bal1, bal2, bal3) => {
   assertEq(bal3, (await ctc0.v.balanceOf(acc3.getAddress()))[1]);
   console.log('assertBalances complete');
 }
-// assert the expected event emitted
+
 const assertEvent = async (event, ...expectedArgs) => {
   const e = await ctc0.events[event].next();
   const actualArgs = e.what;
   expectedArgs.forEach((expectedArg, i) => assertEq(actualArgs[i], expectedArg, `${event} field ${i}`));
   console.log('assertEvent complete');
 }
-// call api transfer function
-// assert the Event triggered
+
 const transfer = async (fromAcc, toAcc, amt) => {
   await ctc(fromAcc).a.transfer(toAcc.getAddress(), amt);
   await assertEvent("Transfer", fromAcc.getAddress(), toAcc.getAddress(), amt);
   console.log('transfer complete');
 }
-// call api transferFrom function
-// assert both events emitted
+
 const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
   const b = await ctc(spenderAcc).a.transferFrom(fromAcc.getAddress(), toAcc.getAddress(), amt);
   await assertEvent("Transfer", fromAcc.getAddress(), toAcc.getAddress(), amt);
   await assertEvent("Approval", fromAcc.getAddress(), spenderAcc.getAddress(), allowanceLeft);
   console.log(`transferFrom complete is ${b}`);
 }
-// call api approve function
-// set allowances
-// assertEvent actually triggered
+
 const approve = async (fromAcc, spenderAcc, amt) => {
   await ctc(fromAcc).a.approve(spenderAcc.getAddress(), amt);
   await assertEvent("Approval", fromAcc.getAddress(), spenderAcc.getAddress(), amt);
@@ -130,8 +104,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 }
 
 
-// start actually testing
-console.log("starting connector-generic tests")
+console.log("Starting tests...")
 
 // initial transfer event upon minting (when launching contract)
 await assertEvent("Transfer", zeroAddress, acc0.getAddress(), totalSupply);
