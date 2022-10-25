@@ -1,6 +1,12 @@
 /**
  * ERC20 contract in Reach
+ * This tutorial assumes prior knowledge of Reach.
+ * We recommend having completed Rock, Paper, Scissors and RSVP
  * 
+ * We'll start by doing scaffolding and setup.Address
+ * 
+ * 
+ * From Will:
  * So this contract is implementing the ledger for this token.  
  * IE it's not transferring an external token, the transfer API 
  * is telling this contract to update the ledger of token ownership.
@@ -12,12 +18,13 @@
 'reach 0.1';
 
 export const main = Reach.App(() => {
+  // set only for EVM networks
   setOptions({ connectors: [ETH] });
   // admin participant for deploying and providing parameters
   const D = Participant('Deployer', {
     // Obect for token metadata
     meta: Object({
-      name: StringDyn,
+      name: StringDyn,// dynamic allocation for String
       symbol: StringDyn,
       decimals: UInt,
       totalSupply: UInt,
