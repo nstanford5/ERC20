@@ -330,7 +330,7 @@ We'll check for a zeroAddress transfer and verify the balance is not greater tha
 
 ```js
   .api_(ERC20.transfer, (to, amount) => {
-    check(to != zeroAddress, "ERC20: Transfer to zero address');
+    check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
   })
 ```
@@ -339,7 +339,7 @@ The next piece to add to this function is the `return` call. In this case we'll 
 
 ```js
   .api_(ERC20.transfer, (to, amount) => {
-    check(to != zeroAddress, "ERC20: Transfer to zero address');
+    check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
     return[(k) => {
       transfer_(this, to, amount);
