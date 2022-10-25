@@ -44,7 +44,9 @@ export const main = Reach.App(() => {
   });
 });
 ```
-We also want to define some Views and Events that make blockchain information more easily accessible to the frontend
+This structure will allow a single address to bind to `D` and allow `ERC20` functions to be called by other contracts or off-chain by frontends representing any number of different users.
+
+We also want to define some Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of the Reach programs significant actions.
 ###### index.rsh
 ```js
 'reach 0.1'
@@ -80,7 +82,9 @@ The application starts with the Deployer providing the token metadata and deploy
     deployed: Fun([Contract], Null),
   });
 ```
-We define the metadata as an Object with specified fields. Then we define a `deployed` function to notify the frontend of contract deployment.
+We define the metadata as an Object with specified fields. 
+
+Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
 Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`
 
