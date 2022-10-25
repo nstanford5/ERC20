@@ -21,7 +21,7 @@ Working directory
 Our application is going to implement the ERC20 token spec and allow 
 functions to be called indefinitely. We'll implement transfer and approval functions for users.
 
-In this program design we'll maintain an ownership database of our token. There won't be any external token transfers, we'll save that for the next iteration.
+This program will implement an ownership database of our token. There will not be any external token transfers, we'll save that for the next iteration.
 
 ## Who are the users in our application?
 There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`.
@@ -106,10 +106,12 @@ Views make information on the blockchain easier to access, they do not provide a
     totalSupply: Fun([], UInt),
     balanceOf: Fun([Address], UInt),
     allowance: Fun([Address, Addresss], UInt),
-  })
+  });
 ```
 
-Events emit at significant states of the program. The significant states of our program are `Transfer` and `Approval`. We'll add this code to our `Events` 
+Events emit at significant actions of the program. Events allow monitoring of Reach program actions, they contain a `when` and a `what`. `when` is the time the Event was emitted from the consensus network, `what` is an array of values from the Event.
+
+The significant actions of our program are `Transfer` and `Approval`. We'll add this code to our `Events`
 
 ```js
   const E = Events({
@@ -138,7 +140,7 @@ Then the `Deployer` notifies the frontend that the contract is deployed
   D.interact.deployed(getContract());
 ```
 
-Now we can set the Views related to our token metadata
+Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain. But it is more difficult to access, especially to the blockchain layman. Setting the token metadata to the Views, provides an easily accessible window into the consensus state.
 
 ```js
   V.name.set(() => name);
@@ -147,7 +149,8 @@ Now we can set the Views related to our token metadata
   V.totalSupply.set(() => totalSupply);
 ```
 
-Next we'll create the maps that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply.
+Next we'll create the maps that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. As this DApp has been designed we will use the `balances` map as our database of ownership.
+
 ```js
   const balances = new Map(Address, UInt);
   const allowances = new Map(Tuple(Address, Address), UInt);
@@ -156,14 +159,15 @@ Next we'll create the maps that hold balances and allowances for transfer. Then 
 ```
 
 Next we'll emit the Event for Transfer to the zero address
+
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
 ```
 
-Before we go any further in our `rsh` file, let's jump to the frontend `mjs` file
+Before we go any further in our `rsh` file, let's jump to the frontend `mjs` file.
 
 We'll start with necessary imports and verify EVM connector setting
-
+###### index.mjs
 ```js
 import * as backend from './build/index.main.mjs';
 import {loadStdlib} from '@reach-sh/stdlib';
@@ -175,13 +179,14 @@ if(stdlib.connector !== ETH){
 }
 ```
 We'll demonstrate using the frontend standard library to check `assert` statements. It will be useful to define a few helper constants. 
+###### index.mjs
 ```js
 const bigNumberify = stdlib.bigNumberify;
 const assert = stdlib.assert;
 ```
 
 Next let's write some test functions. We want to test that they pass when we assume of course, but we also want to check our assumptions about when we expect them to fail.
-
+###### index.mjs
 ```js
 const assertFail = async (promise) => {
   try{
@@ -194,7 +199,7 @@ const assertFail = async (promise) => {
 ```
 
 Next is a function to verify equality
-
+###### index.mjs
 ```js
 const assertEq = (a, b, context = "assertEq") => {
   if (a === b) return;
@@ -208,6 +213,7 @@ const assertEq = (a, b, context = "assertEq") => {
 ```
 
 Now let's create a function to handle deploying our contract and any errors we may encounter
+###### index.mjs
 ```js
 const startMeUp = async (ctc, meta) => {
   const flag = "startup success throw flag"
@@ -226,7 +232,8 @@ const startMeUp = async (ctc, meta) => {
 };
 ```
 
-Then we define the zeroAddress and create our test accounts. 
+Then we define the zeroAddress and create our test accounts.
+###### index.mjs
 ```js
 const zeroAddress = 'Ox' + '0'.repeat(40);
 const accs = await stdlib.newTestAccounts(4, stdlib.parseCurrency(100));
@@ -235,6 +242,7 @@ const [addr0, addr1, addr2, addr3] = accs.map(a => a.getAddress());
 ```
 
 Now we can setup our token metadata in an object.
+###### index.mjs
 ```js
 const totalSupply = 1000_00;
 const decimals = 2;
@@ -248,7 +256,7 @@ const meta = {
 ```
 
 Now that we have our Deployer account and token data, we can deploy the contract and send this info to the backend. We'll use `acc0` as the Deployer.
-
+###### index.mjs
 ```js
 const ctc0 = acc0.contract(backend);
 await startMeUp(ctc0, meta);
@@ -261,7 +269,7 @@ We have all of our users created now and the contract is now deployed. Now we ca
 The next thing we want to do is create the functionality for our `apis`. Given that we have many users who need to do something, we want a `parallelReduce`. 
 
 parallelReduce is a powerful data structure, but in this case we'll use it mostly for convenience. This means we will track no values
-
+###### index.rsh
 ```js
   const [] = parallelreduce([])
 ```
@@ -269,7 +277,7 @@ parallelReduce is a powerful data structure, but in this case we'll use it mostl
 The `define` block of our parallelReduce will be used to define some helper functions.
 
 First, a function to check the balance and setting the related View
-
+###### index.rsh
 ```js
   .define(() => {
     const balanceOf = (owner) => {
@@ -281,7 +289,7 @@ First, a function to check the balance and setting the related View
 ```
 
 Expanding on the `.define` block we want to also set an allowed amount of tokens and the related View.
-
+###### index.rsh
 ```js
   .define(() => {
     const balanceOf = (owner) => {
@@ -298,7 +306,7 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
 ```
 
 The last piece we need to add to our `.define` block is the `transfer_` function. We suffix with `_` because `transfer` is a reserved word in Reach. This is one of the significant events defined in our `Events`, so we'll also emit an Event here.
-
+###### index.rsh
 ```js
   .define(() => {
     const balanceOf = (owner) => {
@@ -319,6 +327,7 @@ The last piece we need to add to our `.define` block is the `transfer_` function
   });// end of define block
 ```
 The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we will set an infinite loop
+###### index.rsh
 ```js
   .invariant(balance() == 0)
   .while(true)
@@ -327,7 +336,7 @@ The contract account will not actually recieve tokens, so we set a simple `invar
 Now that our loop pattern is setup, we can define our `API` member functions
 
 We'll check for a zeroAddress transfer and verify the balance is not greater than the amount.
-
+###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
     check(to != zeroAddress, "ERC20: Transfer to zero address");
@@ -336,7 +345,7 @@ We'll check for a zeroAddress transfer and verify the balance is not greater tha
 ```
 
 The next piece to add to this function is the `return` call. In this case we'll omit the `PAY_EXPR` and track no values. We return Boolean here to match the ERC20 spec
-
+###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
     check(to != zeroAddress, "ERC20: Transfer to zero address");
@@ -351,7 +360,7 @@ The next piece to add to this function is the `return` call. In this case we'll 
 The `API` member function `transfer` is now complete.
 
 Next is `transferFrom`, again we start with dynamic assertions checking for the `zeroAddress`, balances and allowances
-
+###### index.rsh
 ```js
   .api_(ERC20.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
@@ -362,7 +371,7 @@ Next is `transferFrom`, again we start with dynamic assertions checking for the 
 ```
 
 After verifying assertions we can add the `return` to our `transferFrom` function. Again we omit the `PAY_EXPR` -- but this time update the `allowances` map and emit an `Approval` Event
-
+###### index.rsh
 ```js
   .api_(ERC20.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
@@ -383,7 +392,7 @@ After verifying assertions we can add the `return` to our `transferFrom` functio
 That completes our `transferFrom` function.
 
 The last function to implement is the `API` member function `approve`. We'll start with its heading and a dynamic check for the `zeroAddress`
-
+###### index.rsh
 ```js
   .api_(ERC20.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
@@ -391,6 +400,7 @@ The last function to implement is the `API` member function `approve`. We'll sta
 ```
 
 Then we add an update to the `allowances` map and emit an `Approval` Event. We'll add this code to our `approve` function.
+###### index.rsh
 ```js
   .api_(ERC20.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
@@ -404,7 +414,7 @@ Then we add an update to the `allowances` map and emit an `Approval` Event. We'l
 ```
 
 This ends our `.rsh` file, though because of our infinite loop -- we never actually reach `exit`
-
+###### index.rsh
 ```js
   commit();
   exit();
@@ -414,6 +424,7 @@ This ends our `.rsh` file, though because of our infinite loop -- we never actua
 Now we can jump back to our frontend and implement some tests for our new functions.
 
 First a function to verify assertions about the balances of our accounts and their related Views.
+###### index.mjs
 ```js
 const assertBalances = async (bal0, bal1, bal2, bal3) => {
   assertEq(bal0, (await ctc0.v.balanceOf(acc0.getAddress()))[1]);
@@ -425,7 +436,7 @@ const assertBalances = async (bal0, bal1, bal2, bal3) => {
 ```
 
 Now a function to verify our Events
-
+###### index.mjs
 ```js
 const assertEvent = async (event, ...expectedArgs) => {
 const e = await ctc0.events[event].next();
@@ -438,7 +449,7 @@ console.log('assertEvent complete');
 Now we'll define functions to use our `api` calls and inclue some calls to our `assert` functions.
 
 First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`
-
+###### index.rsh
 ```js
 const transfer = async (fromAcc, toAcc, amt) => {
   await ctc(fromAcc).a.transfer(toAcc.getAddress(), amt);
@@ -455,7 +466,7 @@ const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
 ```
 
 Now for the `a.approve` function. Notice these functions are calling our previously defined `assert` functions for verification.
-
+###### index.rsh
 ```js
 const approve = async (fromAcc, spenderAcc, amt) => {
   await ctc(fromAcc).a.approve(spenderAcc.getAddress(), amt);
@@ -467,6 +478,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 Finally, we can test our program!
 
 We'll add a lot of tests to our various functions to test pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
+###### index.rsh
 ```js
 // start testing
 console.log("starting tests");

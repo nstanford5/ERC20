@@ -5,7 +5,7 @@ const stdlib = loadStdlib({REACH_NO_WARN: 'Y'});
 if(stdlib.connector !== 'ETH'){
   console.log('Sorry, this program is only compiled on ETH for now');
   process.exit(0);
-}
+};
 console.log("Starting up...");
 
 const bigNumberify = stdlib.bigNumberify;
@@ -18,7 +18,7 @@ const assertFail = async (promise) => {
     return;
   }
   throw "Expected exception but did not catch one";
-}
+};
 
 const assertEq = (a, b, context = "assertEq") => {
   if (a === b) return;
@@ -28,7 +28,7 @@ const assertEq = (a, b, context = "assertEq") => {
     if (res1BN.eq(res2BN)) return;
   } catch {}
   assert(false, `${context}: ${a} == ${b}`);
-}
+};
 
 const startMeUp = async (ctc, meta) => {
   const flag = "startup success throw flag"
@@ -44,7 +44,7 @@ const startMeUp = async (ctc, meta) => {
       throw e;
     }
   }
-}
+};
 
 const zeroAddress = "0x" + "0".repeat(40);
 const accs = await stdlib.newTestAccounts(4, stdlib.parseCurrency(100));
@@ -59,7 +59,7 @@ const meta = {
   decimals,
   totalSupply,
   zeroAddress,
-}
+};
 
 const ctc0 = acc0.contract(backend);
 await startMeUp(ctc0, meta);
@@ -75,33 +75,33 @@ const assertBalances = async (bal0, bal1, bal2, bal3) => {
   assertEq(bal2, (await ctc0.v.balanceOf(acc2.getAddress()))[1]);
   assertEq(bal3, (await ctc0.v.balanceOf(acc3.getAddress()))[1]);
   console.log('assertBalances complete');
-}
+};
 
 const assertEvent = async (event, ...expectedArgs) => {
   const e = await ctc0.events[event].next();
   const actualArgs = e.what;
   expectedArgs.forEach((expectedArg, i) => assertEq(actualArgs[i], expectedArg, `${event} field ${i}`));
   console.log('assertEvent complete');
-}
+};
 
 const transfer = async (fromAcc, toAcc, amt) => {
   await ctc(fromAcc).a.transfer(toAcc.getAddress(), amt);
   await assertEvent("Transfer", fromAcc.getAddress(), toAcc.getAddress(), amt);
   console.log('transfer complete');
-}
+};
 
 const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
   const b = await ctc(spenderAcc).a.transferFrom(fromAcc.getAddress(), toAcc.getAddress(), amt);
   await assertEvent("Transfer", fromAcc.getAddress(), toAcc.getAddress(), amt);
   await assertEvent("Approval", fromAcc.getAddress(), spenderAcc.getAddress(), allowanceLeft);
   console.log(`transferFrom complete is ${b}`);
-}
+};
 
 const approve = async (fromAcc, spenderAcc, amt) => {
   await ctc(fromAcc).a.approve(spenderAcc.getAddress(), amt);
   await assertEvent("Approval", fromAcc.getAddress(), spenderAcc.getAddress(), amt);
   console.log('approve complete');
-}
+};
 
 
 console.log("Starting tests...")
