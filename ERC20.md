@@ -24,10 +24,10 @@ functions to be called indefinitely. We'll implement transfer and approval funct
 This program will implement an ownership database of our token. There will not be any external token transfers, we'll save that for the next iteration.
 
 ## Who are the users in our application?
-There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`.
+There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`s.
 
 ## What are the steps of the program?
-The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with some special considerations.
+The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
 
 Let's define our users.
 ###### index.rsh
@@ -46,7 +46,8 @@ export const main = Reach.App(() => {
 ```
 This structure will allow a single address to bind to `D` and allow `ERC20` functions to be called by other contracts or off-chain by frontends representing any number of different users.
 
-We also want to define some Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of the significant actions in our Reach program.
+We also want to define Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of significant actions in our Reach program.
+
 ###### index.rsh
 ```js
 'reach 0.1'
@@ -69,6 +70,7 @@ export const main = Reach.App(() => {
 ```
 
 The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we add some data definitions to our `Participant`
+
 ###### index.rsh
 ```js
   const D = Participant('Deployer', {
@@ -82,13 +84,15 @@ The application starts with the Deployer providing the token metadata and deploy
     deployed: Fun([Contract], Null),
   });
 ```
+
 We define the metadata as an Object with specified fields. More on [StringDyn](https://docs.reach.sh/rsh/compute/#rsh_StringDyn)
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
-Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These functions are from the ERC20 spec.
+Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These functions are from the (ERC20 spec)[link]. //here
 
 We'll add this code to our `ERC20 API`
+
 ###### index.rsh
 ```js
   const ERC20 = API({
@@ -100,7 +104,8 @@ We'll add this code to our `ERC20 API`
 
 Now let's define our Views and Events. 
 
-Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make available would be token metadata, token balances and token allowances. We'll add this code to our `View`
+Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make available would be token metadata, token balances and token allowances. We'll add this code to our `View`.
+
 ###### index.rsh
 ```js
   const V = View({
@@ -115,7 +120,8 @@ Views make information on the blockchain easier to access, they do not provide a
 
 Events emit at significant actions of the program. Events allow monitoring of Reach program actions, they contain a `when` and a `what`. `when` is the time the Event was emitted from the consensus network, `what` is an array of values from the Event.
 
-The significant actions of our program are `Transfer` and `Approval`. We'll add this code to our `Events`
+The significant actions of our program are `Transfer` and `Approval`. We'll add this code to our `Events`.
+
 ###### index.rsh
 ```js
   const E = Events({
@@ -128,6 +134,7 @@ The significant actions of our program are `Transfer` and `Approval`. We'll add 
 That is all for our data definitions, so we call `init()` to start stepping through the states of our program.
 
 As noted earlier, the first step is to have the `Deployer` provide the token metadata and actually deploy the contract with the first publish.
+
 ###### index.rsh
 ```js
   D.only(() => {
@@ -138,15 +145,19 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
   });
 ```
 
-Then the `Deployer` notifies the frontend that the contract is deployed. `getContract()` will return the contract value, it cannot be called until after the first `publish`
+Then the `Deployer` notifies the frontend that the contract is deployed. 
+`getContract()` will return the contract value, it cannot be called until after the first `publish`
+//here add a break between content and code
 ###### index.rsh
 ```js
   D.interact.deployed(getContract());
 ```
 
-Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain. But it is primarily acessible with some difficulty, Views make this as simple as defining a function to provide the information to the frontend. 
+//here use semantic lines. basically means a break at every sentence.
+Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain, but it is acessible with some difficulty. `View`s make this as simple as defining a function to provide the information to the frontend. 
 
-Setting the token metadata to the Views, provides an easily accessible window into the consensus state.
+Setting the token metadata to the `View`s, provides an easily accessible window into the consensus state.
+
 ###### index.rsh
 ```js
   V.name.set(() => name);
@@ -155,7 +166,9 @@ Setting the token metadata to the Views, provides an easily accessible window in
   V.totalSupply.set(() => totalSupply);
 ```
 
-Next we'll create the maps that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. As this DApp has been designed we will use the `balances` map as our database of ownership.
+Next we'll create the `Map`s that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. 
+As this DApp has been designed we will use the `balances` map as our database of ownership. //here oddly worded
+
 ###### index.rsh
 ```js
   const balances = new Map(Address, UInt);
@@ -163,9 +176,11 @@ Next we'll create the maps that hold balances and allowances for transfer. Then 
 
   balances[D] = totalSupply;
 ```
-Then we set the balance map for the `Deployer` to the `totalSupply`
+
+Then we set the balance `Map` for the `Deployer` to the `totalSupply`
 
 Next we'll emit the Event for Transfer to the zero address.
+
 ###### index.rsh
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
@@ -173,7 +188,8 @@ Next we'll emit the Event for Transfer to the zero address.
 
 Before we go any further in our `rsh` file, let's jump to the frontend `mjs` file.
 
-We'll start with necessary imports and verify EVM connector setting
+We'll start with necessary imports and verify EVM connector setting.
+
 ###### index.mjs
 ```js
 import * as backend from './build/index.main.mjs';
@@ -185,14 +201,17 @@ if(stdlib.connector !== 'ETH'){
   process.exit(0);
 };
 ```
+
 We'll demonstrate using the frontend standard library to check `assert` statements. It will be useful to define a few helper constants. 
+
 ###### index.mjs
 ```js
 const assert = stdlib.assert;
 const bigNumberify = stdlib.bigNumberify;
 ```
 
-Next let's write some test functions. We of course want to test that they pass when we assume they will, but we also want to check our assumptions about when we expect them to fail.
+Next, let's write some test functions. We of course want to test that they pass when we assume they will, but we also want to check our assumptions about when we expect them to fail.
+
 ###### index.mjs
 ```js
 const assertFail = async (promise) => {
@@ -205,7 +224,8 @@ const assertFail = async (promise) => {
 };
 ```
 
-Next is a function to verify equality
+Next is a function to verify equality.
+
 ###### index.mjs
 ```js
 const assertEq = (a, b, context = "assertEq") => {
@@ -219,7 +239,8 @@ const assertEq = (a, b, context = "assertEq") => {
 };
 ```
 
-Now let's create a function to handle deploying our contract and any errors we may encounter
+Now let's create a function to handle deploying our contract and any errors we may encounter.
+
 ###### index.mjs
 ```js
 const startMeUp = async (ctc, meta) => {
@@ -240,6 +261,7 @@ const startMeUp = async (ctc, meta) => {
 ```
 
 Then we define the zeroAddress and create our test accounts.
+
 ###### index.mjs
 ```js
 const zeroAddress = 'Ox' + '0'.repeat(40);
@@ -249,6 +271,7 @@ const [addr0, addr1, addr2, addr3] = accs.map(a => a.getAddress());
 ```
 
 Now we can setup our token metadata in an object to eventually be passed to the backend.
+
 ###### index.mjs
 ```js
 const totalSupply = 1000_00;
@@ -263,6 +286,7 @@ const meta = {
 ```
 
 Now that we have our Deployer account and token data, we can deploy the contract and send this info to the backend. We'll use `acc0` as the Deployer.
+
 ###### index.mjs
 ```js
 const ctc0 = acc0.contract(backend);
@@ -313,6 +337,9 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
 ```
 
 The last piece we need to add to our `.define` block is the `transfer_` function. We suffix with `_` because `transfer` is a reserved word in Reach. This is one of the significant events defined in our `Events`, so we also emit an Event here.
+
+//here maybe good to note that we can't prefix with _ because that indicates a secret variable
+
 ###### index.rsh
 ```js
   .define(() => {
@@ -333,22 +360,25 @@ The last piece we need to add to our `.define` block is the `transfer_` function
     };
   });// end of define block
 ```
+
 Why do we use `fromSome()` here?
 
-Maps are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
+`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
 
 Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. Reach provides the `fromSome()` function to easily consume these `Maybe` values. It takes the `Maybe` value and a default value if `Maybe == None`. `fromSome(Maybe, default)` [fromSome docs](https://docs.reach.sh/rsh/compute/#rsh_fromSome)
 
-The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we set an infinite loop
+The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we set an infinite loop.
+
 ###### index.rsh
 ```js
   .invariant(balance() == 0)
   .while(true)
 ```
 
-Now that our loop pattern is setup, we can define our `API` member functions
+Now that our loop pattern is setup, we can define our `API` member functions.
 
 `transfer` will check for a zeroAddress transfer and verify the balance is not greater than the amount.
+
 ###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
@@ -358,6 +388,7 @@ Now that our loop pattern is setup, we can define our `API` member functions
 ```
 
 The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and track no values. We return a Boolean here to match the ERC20 spec
+
 ###### index.rsh
 ```js
   .api_(ERC20.transfer, (to, amount) => {
@@ -370,9 +401,11 @@ The next piece to add to this function is the `return` call. In this case the `P
     }];
   })
 ```
+
 The `API` member function `transfer` is now complete. Note, we are allowed to use `transfer` as an identifier for this function because it is an external function, Reach knows this is not for transferring from the contract account.
 
 Next is `transferFrom`, again we start with dynamic assertions checking for the `zeroAddress`, balances and allowances
+
 ###### index.rsh
 ```js
   .api_(ERC20.transferFrom, (from_, to, amount) => {
