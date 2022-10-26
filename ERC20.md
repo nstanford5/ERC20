@@ -201,7 +201,7 @@ const assertFail = async (promise) => {
   } catch (e) {
     return;
   }
-  throw "Expexted exception but did not catch one";
+  throw "Expected exception but did not catch one";
 };
 ```
 
@@ -305,7 +305,7 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
     }
     V.balanceOf.set(balanceOf);
     const allowance = (owner, spender) => {
-      const m_bal = allowance[[owner, spender]];
+      const m_bal = allowances[[owner, spender]];
       return fromSome(m_bal, 0);
     }
     V.allowance.set(allowance);
@@ -322,7 +322,7 @@ The last piece we need to add to our `.define` block is the `transfer_` function
     };
     V.balanceOf.set(balanceOf);
     const allowance = (owner, spender) => {
-      const m_bal = allowance[[owner, spender]];
+      const m_bal = allowances[[owner, spender]];
       return fromSome(m_bal, 0);
     };
     V.allowance.set(allowance);
