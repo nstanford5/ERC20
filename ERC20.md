@@ -86,7 +86,7 @@ We define the metadata as an Object with specified fields. More on [StringDyn](h
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
-Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`
+Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These functions are from the ERC20 spec.
 
 We'll add this code to our `ERC20 API`
 ###### index.rsh
@@ -124,7 +124,7 @@ The significant actions of our program are `Transfer` and `Approval`. We'll add 
   });
   init();
 ```
-
+  
 That is all for our data definitions, so we call `init()` to start stepping through the states of our program.
 
 As noted earlier, the first step is to have the `Deployer` provide the token metadata and actually deploy the contract with the first publish.
