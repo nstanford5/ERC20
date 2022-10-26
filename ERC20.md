@@ -337,7 +337,7 @@ Why do we use `fromSome()` here?
 
 Maps are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
 
-Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. Reach provides the `fromSome()` function to easily consume these `Maybe` values. It takes the `Maybe` value and a default value if `Maybe == None`. `fromSome(Maybe, default)` [docs](https://docs.reach.sh/rsh/compute/#rsh_fromSome)
+Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. Reach provides the `fromSome()` function to easily consume these `Maybe` values. It takes the `Maybe` value and a default value if `Maybe == None`. `fromSome(Maybe, default)` [fromSome docs](https://docs.reach.sh/rsh/compute/#rsh_fromSome)
 
 The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we set an infinite loop
 ###### index.rsh
