@@ -13,7 +13,7 @@ Create your files
 `touch index.rsh`
 `touch index.mjs`
 
-Working directory
+Working directory, where the reach shell script is installed in `Reach`
 `~/Reach/erc20`
 
 
@@ -109,7 +109,7 @@ Views make information on the blockchain easier to access, they do not provide a
     decimals: Fun([], UInt),
     totalSupply: Fun([], UInt),
     balanceOf: Fun([Address], UInt),
-    allowance: Fun([Address, Addresss], UInt),
+    allowance: Fun([Address, Address], UInt),
   });
 ```
 
@@ -180,7 +180,7 @@ import * as backend from './build/index.main.mjs';
 import {loadStdlib} from '@reach-sh/stdlib';
 const stdlib = loadStdlib(process.env);
 
-if(stdlib.connector !== ETH){
+if(stdlib.connector !== 'ETH'){
   console.log('Sorry, this program only works on EVM networks');
   process.exit(0);
 };
@@ -459,7 +459,7 @@ console.log('assertEvent complete');
 };
 ```
 
-Now we'll define functions to use our `api` calls and inclue some calls to our `assert` functions.
+Now we'll define functions to use our `api` calls and include some calls to our `assert` functions.
 
 First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`.
 ###### index.mjs
