@@ -87,6 +87,7 @@ const assertEvent = async (event, ...expectedArgs) => {
 const transfer = async (fromAcc, toAcc, amt) => {
   await ctc(fromAcc).a.transfer(toAcc.getAddress(), amt);
   await assertEvent("Transfer", fromAcc.getAddress(), toAcc.getAddress(), amt);
+  stdlib.transfer(fromAcc, toAcc, stdlib.parseCurrency(amt));
   console.log('transfer complete');
 };
 
