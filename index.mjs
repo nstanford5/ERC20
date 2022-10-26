@@ -8,8 +8,8 @@ if(stdlib.connector !== 'ETH'){
 };
 console.log("Starting up...");
 
-const bigNumberify = stdlib.bigNumberify;
 const assert = stdlib.assert;
+const bigNumberify = stdlib.bigNumberify;
 
 const assertFail = async (promise) => {
   try {
