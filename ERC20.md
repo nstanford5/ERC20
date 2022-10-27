@@ -265,7 +265,7 @@ We'll start with necessary imports and verify EVM connector setting. This DApp h
 - Maps with keys other than Addresses
 - Dynamically sized data (StringDyn)
 
- **_NOTE:_**  The upcoming Box Storage feature on Algorand will allow Reach to add support for different types of Map keys.
+ **_NOTE:_**  *The upcoming Box Storage feature on Algorand will allow Reach to add support for different types of Map keys.*
 
 ###### index.mjs
 ```js
@@ -429,7 +429,7 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
 
 The last piece we need to add to our `.define` block is the `transfer_` function. This is one of the significant events defined in our `Events`, so we also emit an Event here.
 
-**_Note:_** Names suffixed with `_` are not significant other than to avoid reserved words.
+**_Note:_** *Names suffixed with `_` are not significant other than to avoid reserved words.*
 
 ###### index.rsh
 ```js
