@@ -302,7 +302,7 @@ const assertFail = async (promise) => {
 };
 ```
 
-Next is a helper function to verify equality. UInts returned from `API`s and `Views` are represented as bigNumbers, this helper lets us use them interchangeably.
+Next is a helper function to verify equality. UInts returned from `API`s and `Views` are represented as bigNumbers, this helper lets us use them interchangeably. [JavaScript type representations](https://docs.reach.sh/frontend/#p_6) in Reach.
 
 ###### index.mjs
 ```js
