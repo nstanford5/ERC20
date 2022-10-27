@@ -17,8 +17,7 @@ Working directory `~/Reach/erc20`, where the reach shell script is installed in 
 
 
 ## Problem Analysis
-Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow 
-functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events. They are listed here for reference.
+Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events. They are listed here for reference.
 
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
@@ -49,6 +48,8 @@ functions to be called indefinitely. We'll implement the standard ERC20 function
 |Approval(owner: address, spender: address, value: uint256)        |
 
 ### How that looks in Reach
+
+Here is an overview of those same functions and values. We'll walk through each piece, so there is no need to copy this code yet.
 
 ```js
 const D = Participant('Deployer', {
@@ -202,7 +203,7 @@ The significant actions of our program are `Transfer` and `Approval`. We'll add 
   
 That is all for our data definitions, so we call `init()` to start stepping through the states of our program.
 
-As noted earlier, the first step is to have the `Deployer` provide the token metadata and actually deploy the contract with the first publish.
+As noted earlier, the first step is to have the Deployer provide the token metadata and actually deploy the contract with the first publish.
 
 ###### index.rsh
 ```js
@@ -214,7 +215,7 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
   });
 ```
 
-Then the `Deployer` notifies the frontend that the contract is deployed. 
+Then the Deployer notifies the frontend that the contract is deployed. 
 `getContract()` will return the contract value, it cannot be called until after the first `publish`.
 
 ###### index.rsh
@@ -238,7 +239,7 @@ Setting the token metadata to the `View`s, provides an easily accessible window 
   V.totalSupply.set(() => totalSupply);
 ```
 
-Next we'll create the `Map`s that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. 
+Next we'll create the `Map`s that hold balances and allowances for transfer. 
 
 The `balances` map will be our database of ownership.
 
@@ -316,7 +317,7 @@ const assertEq = (a, b, context = "assertEq") => {
 };
 ```
 
-Now let's create a function to handle deploying our contract and any errors we may encounter.
+Now let's create a function to handle deploying our contract and any errors we may encounter. [startMeUp](https://youtu.be/7JR10AThY8M)
 
 ###### index.mjs
 ```js
@@ -403,7 +404,7 @@ First, a function to check the balance and set the related View.
 
 Why do we use `fromSome()` here?
 
-`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
+`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or it may not. These are not unique to Reach and are generally referred to as option types, an important protection against null pointer references.
 
 Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. 
 
@@ -472,7 +473,7 @@ Now that our loop pattern is setup, we can define our `API` member functions.
   })
 ```
 
-The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and track no values. We return a Boolean here to match the ERC20 spec.
+The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and we track no values. We return a Boolean here to match the ERC20 spec.
 
 ###### index.rsh
 ```js
@@ -617,7 +618,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 
 Finally, we can add some tests our program!
 
-We will test to our various functions for pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
+We will test our various functions for pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
 
 ###### index.mjs
 ```js
