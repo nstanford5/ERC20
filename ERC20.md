@@ -225,7 +225,7 @@ Then the Deployer notifies the frontend that the contract is deployed.
 
 Now we can set the Views related to our token metadata. 
 
-Remember, this information is already available, because we published it to the blockchain, but it is acessible with some difficulty. 
+This information is already available, because we published it to the blockchain, but it is accessible with some difficulty. 
 
 `View`s make this as simple as defining a function to provide the information to the frontend. 
 
