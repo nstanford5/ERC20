@@ -21,12 +21,6 @@ Working directory, where the reach shell script is installed in `Reach`
 Our application is going to implement the ERC20 token spec and allow 
 functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events.
 
-For convenience here are those funtions
-```mermaid
-classDiagram
-Public Class: _balance() mapping(address=>uint256)
-```
-
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
 |                                                                  |
