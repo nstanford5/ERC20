@@ -24,11 +24,7 @@ functions to be called indefinitely. We'll implement the standard ERC20 function
 For convenience here are those funtions
 ```mermaid
 classDiagram
-Private:
-function
-
-Public:
-function
+Public Class: _balance() mapping(address=>uint256)
 ```
 
 | ERC20 UML                                                        |
