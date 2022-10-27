@@ -18,7 +18,7 @@ Working directory `~/Reach/erc20`, where the reach shell script is installed in 
 
 ## Problem Analysis
 Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow 
-functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events.
+functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events. They are listed here for reference.
 
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
@@ -90,7 +90,7 @@ Now that our problem is defined we can move on to designing our Reach program. I
 ## Program Design
 
 ### Who are the users in our application?
-There will be one deployer who we will implement as a `Participant` and an unbounded number of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s
+There will be one deployer who we will implement as a `Participant` and an unbounded number of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s.
 
 ### What are the steps of the program?
 The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
@@ -136,7 +136,7 @@ export const main = Reach.App(() => {
 });
 ```
 
-The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we add some data definitions to our `Participant`
+The application starts with the Deployer providing the token metadata and deploying the contract with the first `publish`. So we add some data definitions to our `Participant`.
 
 ###### index.rsh
 ```js
@@ -158,7 +158,7 @@ Then we define a `deployed` function to notify the frontend of contract deployme
 
 Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These are the public functions from our UML diagram.
 
-We'll add this code to our `API`
+We'll add this code to our `API`.
 
 ###### index.rsh
 ```js
@@ -173,7 +173,7 @@ The `transferFrom` method allows contracts to transfer tokens on your behalf and
 
 Now let's define our Views and Events. 
 
-Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make available would be token metadata, token balances and token allowances. We'll add this code to our `View`.
+Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make view would be token metadata, token balances and token allowances. We'll add this code to our `View`.
 
 ###### index.rsh
 ```js
@@ -215,7 +215,7 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
 ```
 
 Then the `Deployer` notifies the frontend that the contract is deployed. 
-`getContract()` will return the contract value, it cannot be called until after the first `publish`
+`getContract()` will return the contract value, it cannot be called until after the first `publish`.
 
 ###### index.rsh
 ```js
@@ -261,7 +261,7 @@ Next we'll emit the Event for Transfer from the zero address. This event shows t
 
 Before we go any further in our `rsh` file, let's jump back the frontend `mjs` file.
 
-We'll start with necessary imports and verify EVM connector setting. This DApp has two features that are not yet supported on Algorand
+We'll start with necessary imports and verify EVM connector setting. This DApp has two features that are not yet supported on Algorand.
 - Maps with keys other than Addresses
 - Dynamically sized data (StringDyn)
 
