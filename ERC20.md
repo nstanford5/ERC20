@@ -81,9 +81,9 @@ const D = Participant('Deployer', {
 ```
 
 #### Per the specifications:
-The `Transfer` event MUST trigger when tokens are transferred, including zero value transfers.
+- The `Transfer` event MUST trigger when tokens are transferred, including zero value transfers.
 
-The `Approval` event MUST trigger on any successful call to `approve(spender, amount)`.
+- The `Approval` event MUST trigger on any successful call to `approve(spender, amount)`.
 
 Now that our problem is defined we can move on to designing our Reach program. It is best practice for Reach programs to consider the users of your application and their interaction with the contract account.
 
