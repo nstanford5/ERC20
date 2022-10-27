@@ -25,13 +25,15 @@ For convenience here are those funtions
 
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
-| Private                                                          |
+|                                                                  |
+| Private:                                                         |
 |_balance: mapping(addres=>uint256)                                |
 |_allowances: mapping(address=>mapping(address=>uint256))          |
 |_totalSupply: uint256                                             |
 |_name: string                                                     |
 |_symbol: string                                                   |
-| Public                                                           |
+|                                                                  |
+| Public:                                                          |
 |constructor(name_: string, symbol_: string)                       |
 |name(): string                                                    |
 |symbol(): string                                                  |
