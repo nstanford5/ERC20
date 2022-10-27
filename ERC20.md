@@ -317,7 +317,7 @@ const assertEq = (a, b, context = "assertEq") => {
 };
 ```
 
-Now let's create a function to handle deploying our contract and any errors we may encounter. [startMeUp](https://youtu.be/7JR10AThY8M)
+Now let's create a function to handle deploying our contract and any errors we may encounter. [Music Break](https://youtu.be/7JR10AThY8M)
 
 ###### index.mjs
 ```js
