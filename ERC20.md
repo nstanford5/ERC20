@@ -429,7 +429,7 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
 
 The last piece we need to add to our `.define` block is the `transfer_` function. This is one of the significant events defined in our `Events`, so we also emit an Event here.
 
-**_Note_** Names suffixed with `_` are not significant other than to avoid reserved words
+**_Note:_** Names suffixed with `_` are not significant other than to avoid reserved words.
 
 ###### index.rsh
 ```js
