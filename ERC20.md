@@ -793,7 +793,7 @@ export const main = Reach.App(() => {
   const allowances = new Map(Tuple(Address, Address), UInt);
 
   balances[D] = totalSupply;
-  eERC20.Transfer(zeroAddress, D, totalSupply);
+  E.Transfer(zeroAddress, D, totalSupply);
 
   const [] = parallelReduce([])
   .define(() => {
