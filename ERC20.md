@@ -22,18 +22,15 @@ Our application is going to implement the ERC20 token spec and allow
 functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events.
 
 For convenience here are those funtions
-###### ERC20 UML
 
+| ERC20 UML                                                        |
 | Private                                                          |
-|------------------------------------------------------------------|
 |_balance: mapping(addres=>uint256)                                |
 |_allowances: mapping(address=>mapping(address=>uint256))          |
 |_totalSupply: uint256                                             |
 |_name: string                                                     |
 |_symbol: string                                                   |
-|------------------------------------------------------------------|
-|Public                                                            |
-|------------------------------------------------------------------|
+| Public                                                           |
 |constructor(name_: string, symbol_: string)                       |
 |name(): string                                                    |
 |symbol(): string                                                  |
@@ -46,7 +43,7 @@ For convenience here are those funtions
 |transferFrom(from: address, to: address, amount: uint256): bool   |
 |increaseAllowance(spender: address, addedvalue: uint256): bool    |
 |decreaseAllowance(spender: address, subtractedValue: uint256):bool|
-|------------------------------------------------------------------|
+
 
 This program will implement an ownership database of our token. There will not be any external token transfers, we'll save that for the next iteration.
 
