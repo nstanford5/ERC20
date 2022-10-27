@@ -24,6 +24,7 @@ functions to be called indefinitely. We'll implement the standard ERC20 function
 For convenience here are those funtions
 
 | ERC20 UML                                                        |
+|------------------------------------------------------------------|
 | Private                                                          |
 |_balance: mapping(addres=>uint256)                                |
 |_allowances: mapping(address=>mapping(address=>uint256))          |
