@@ -13,12 +13,11 @@ Create your files
 `touch index.rsh`
 `touch index.mjs`
 
-Working directory, where the reach shell script is installed in `Reach`
-`~/Reach/erc20`
+Working directory `~/Reach/erc20`, where the reach shell script is installed in `Reach`
 
 
 ## Problem Analysis
-Our application is going to implement the ERC20 token spec and allow 
+Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow 
 functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events.
 
 | ERC20 UML                                                        |
@@ -44,17 +43,58 @@ functions to be called indefinitely. We'll implement the standard ERC20 function
 |transferFrom(from: address, to: address, amount: uint256): bool   |
 |increaseAllowance(spender: address, addedvalue: uint256): bool    |
 |decreaseAllowance(spender: address, subtractedValue: uint256):bool|
+|                                                                  |
+| Events:                                                          |
+|Transfer(from: address, to: address, value: uint256)              |
+|Approval(owner: address, spender: address, value: uint256)        |
 
+### How that looks in Reach
 
-This program will implement an ownership database of our token. There will not be any external token transfers, we'll save that for the next iteration.
+```js
+const D = Participant('Deployer', {
+    meta: Object({
+      name: StringDyn,
+      symbol: StringDyn,
+      decimals: UInt,
+      totalSupply: UInt,
+      zeroAddress: Address,
+    }),
+    deployed: Fun([Contract], Null),
+  });
+  const A = API({
+    transfer: Fun([Address, UInt], Bool),
+    transferFrom: Fun([Address, Address, UInt], Bool),
+    approve: Fun([Address, UInt], Bool),
+  });
+  const v = View({
+    name: Fun([], StringDyn),
+    symbol: Fun([], StringDyn),
+    decimals: Fun([], UInt),
+    totalSupply: Fun([], UInt),
+    balanceOf: Fun([Address], UInt),
+    allowance: Fun([Address, Address], UInt),
+  });
+  const E = Events({
+    Transfer: [Address, Address, UInt],
+    Approval: [Address, Address, UInt],
+  });
+```
+
+#### Per the specifications:
+The `Transfer` event MUST trigger when tokens are transferred, including zero value transfers.
+
+The `Approval` event MUST trigger on any successful call to `approve(spender, amount)`.
+
+Now that our problem is defined we can move on to designing our Reach program. It is best practice for Reach programs to consider the users of your application and their interaction with the contract account.
 
 ## Who are the users in our application?
-There will be one deployer who we will implement as a `Participant` and an unbounded member of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s
+There will be one deployer who we will implement as a `Participant` and an unbounded number of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s
 
 ## What are the steps of the program?
 The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
 
 Let's define our users.
+
 ###### index.rsh
 ```js
 'reach 0.1'
@@ -64,12 +104,12 @@ export const main = Reach.App(() => {
   const D = Participant('Deployer', {
 
   });
-  const ERC20 = API({
+  const A = API({
 
   });
 });
 ```
-This structure will allow a single address to bind to `D` and allow `ERC20` functions to be called by other contracts or off-chain by frontends representing any number of different users.
+This structure will allow a single address to bind to `D` and allow `A` functions to be called by other contracts or off-chain by frontends representing any number of different users.
 
 We also want to define Views and Events that make blockchain information more easily accessible to the frontend. Views will increase the visibility of information and Events allow monitoring of significant actions in our Reach program.
 
@@ -81,7 +121,7 @@ export const main = Reach.App(() => {
   const D = Participant('Deployer', {
 
   });
-  const ERC20 = API({
+  const A = API({
 
   });
   const V = View({
@@ -114,18 +154,20 @@ We define the metadata as an Object with specified fields. More on [StringDyn](h
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
-Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These functions are from the (ERC20 spec)[link]. //here
+Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These are the public functions from our UML diagram.
 
-We'll add this code to our `ERC20 API`
+We'll add this code to our `API`
 
 ###### index.rsh
 ```js
-  const ERC20 = API({
+  const A = API({
     transfer: Fun([Addresss, UInt], Bool),
     transferFrom: Fun([Address, Address, UInt], Bool),
     approve: Fun([Address, UInt], Bool),
   });
 ```
+
+The `transferFrom` method allows contracts to transfer tokens on your behalf and/or to charge fees in sub-currencies. [Source](https://eips.ethereum.org/EIPS/eip-20#simple-summary)
 
 Now let's define our Views and Events. 
 
@@ -172,14 +214,17 @@ As noted earlier, the first step is to have the `Deployer` provide the token met
 
 Then the `Deployer` notifies the frontend that the contract is deployed. 
 `getContract()` will return the contract value, it cannot be called until after the first `publish`
-//here add a break between content and code
+
 ###### index.rsh
 ```js
   D.interact.deployed(getContract());
 ```
 
-//here use semantic lines. basically means a break at every sentence.
-Now we can set the Views related to our token metadata. Remember, this information is already available, because we published it to the blockchain, but it is acessible with some difficulty. `View`s make this as simple as defining a function to provide the information to the frontend. 
+Now we can set the Views related to our token metadata. 
+
+Remember, this information is already available, because we published it to the blockchain, but it is acessible with some difficulty. 
+
+`View`s make this as simple as defining a function to provide the information to the frontend. 
 
 Setting the token metadata to the `View`s, provides an easily accessible window into the consensus state.
 
@@ -192,7 +237,8 @@ Setting the token metadata to the `View`s, provides an easily accessible window 
 ```
 
 Next we'll create the `Map`s that hold balances and allowances for transfer. Then we'll set the `Deployer` balance to the token supply. 
-As this DApp has been designed we will use the `balances` map as our database of ownership. //here oddly worded
+
+The `balances` map will be our database of ownership.
 
 ###### index.rsh
 ```js
@@ -202,18 +248,22 @@ As this DApp has been designed we will use the `balances` map as our database of
   balances[D] = totalSupply;
 ```
 
-Then we set the balance `Map` for the `Deployer` to the `totalSupply`
+Then we set the balance map for the deployer to the `totalSupply`.
 
-Next we'll emit the Event for Transfer from the zero address. This event shows the toekn has been mintend and given initial state.
+Next we'll emit the Event for Transfer from the zero address. This event shows the token has been minted and given initial state.
 
 ###### index.rsh
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
 ```
 
-Before we go any further in our `rsh` file, let's jump to the frontend `mjs` file.
+Before we go any further in our `rsh` file, let's jump back the frontend `mjs` file.
 
-We'll start with necessary imports and verify EVM connector setting.
+We'll start with necessary imports and verify EVM connector setting. This DApp has two features that are not yet supported on Algorand
+- Maps with keys other than Addresses
+- Dynamically sized data (StringDyn)
+
+ **_NOTE:_**  The upcoming Box Storage feature on Algorand will allow Reach to add support for different types of Map keys.
 
 ###### index.mjs
 ```js
@@ -222,7 +272,7 @@ import {loadStdlib} from '@reach-sh/stdlib';
 const stdlib = loadStdlib(process.env);
 
 if(stdlib.connector !== 'ETH'){
-  console.log('Sorry, this program only works on EVM networks');
+  console.log('Sorry, this program only works on EVM networks for now');
   process.exit(0);
 };
 ```
@@ -249,7 +299,7 @@ const assertFail = async (promise) => {
 };
 ```
 
-Next is a function to verify equality.
+Next is a helper function to verify equality. UInts returned from `API`s and `Views` are represented as bigNumbers, this helper lets us use them interchangeably.
 
 ###### index.mjs
 ```js
@@ -324,15 +374,20 @@ We have all of our users created now and the contract is deployed. Now we can go
 
 The next thing we want to do is create the functionality for our `apis`. Given that we have many users who need to do something, we want a `parallelReduce`. 
 
-parallelReduce is a powerful data structure, but in this case we'll use it mostly for convenience. This means we will track no values
+`parallelReduce` is a powerful control structure, it will allow users to repeatedly call `API`s in a looping construct.
+
+We could use a `while` loop with a `fork`, but `parallelReduce` is a more convenient way to write it.
+
 ###### index.rsh
 ```js
   const [] = parallelreduce([])
 ```
+The only values that need to be tracked in the program are the balances and allowances, so the `parallelReduce` does not need to track any values.
 
 The `define` block of our parallelReduce will be used to define some helper functions.
 
-First, a function to check the balance and set the related View
+First, a function to check the balance and set the related View.
+
 ###### index.rsh
 ```js
   .define(() => {
@@ -344,7 +399,16 @@ First, a function to check the balance and set the related View
   });
 ```
 
+Why do we use `fromSome()` here?
+
+`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
+
+Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. 
+
+Reach provides the `fromSome()` function to easily consume these `Maybe` values. It takes the `Maybe` value and a default value if `Maybe == None`. `fromSome(Maybe, default)` [fromSome docs](https://docs.reach.sh/rsh/compute/#rsh_fromSome)
+
 Expanding on the `.define` block we want to also set an allowed amount of tokens and its related View.
+
 ###### index.rsh
 ```js
   .define(() => {
@@ -361,9 +425,9 @@ Expanding on the `.define` block we want to also set an allowed amount of tokens
   });
 ```
 
-The last piece we need to add to our `.define` block is the `transfer_` function. We suffix with `_` because `transfer` is a reserved word in Reach. This is one of the significant events defined in our `Events`, so we also emit an Event here.
+The last piece we need to add to our `.define` block is the `transfer_` function. This is one of the significant events defined in our `Events`, so we also emit an Event here.
 
-//here maybe good to note that we can't prefix with _ because that indicates a secret variable
+**_Note_** Names suffixed with `_` are not significant other than to avoid reserved words
 
 ###### index.rsh
 ```js
@@ -386,12 +450,6 @@ The last piece we need to add to our `.define` block is the `transfer_` function
   });// end of define block
 ```
 
-Why do we use `fromSome()` here?
-
-`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or they may not. This is generally referred to as a optional type and is important to protect against null pointer references.
-
-Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. Reach provides the `fromSome()` function to easily consume these `Maybe` values. It takes the `Maybe` value and a default value if `Maybe == None`. `fromSome(Maybe, default)` [fromSome docs](https://docs.reach.sh/rsh/compute/#rsh_fromSome)
-
 The contract account will not actually recieve tokens, so we set a simple `invariant`. We also want these functions to be callable indefinitely, so we set an infinite loop.
 
 ###### index.rsh
@@ -406,17 +464,17 @@ Now that our loop pattern is setup, we can define our `API` member functions.
 
 ###### index.rsh
 ```js
-  .api_(ERC20.transfer, (to, amount) => {
+  .api_(A.transfer, (to, amount) => {
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
   })
 ```
 
-The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and track no values. We return a Boolean here to match the ERC20 spec
+The next piece to add to this function is the `return` call. In this case the `PAY_EXPR` is omitted and track no values. We return a Boolean here to match the ERC20 spec.
 
 ###### index.rsh
 ```js
-  .api_(ERC20.transfer, (to, amount) => {
+  .api_(A.transfer, (to, amount) => {
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
     return[(k) => {
@@ -427,13 +485,13 @@ The next piece to add to this function is the `return` call. In this case the `P
   })
 ```
 
-The `API` member function `transfer` is now complete. Note, we are allowed to use `transfer` as an identifier for this function because it is an external function, Reach knows this is not for transferring from the contract account.
+The `API` member function `transfer` is now complete.
 
-Next is `transferFrom`, again we start with dynamic assertions checking for the `zeroAddress`, balances and allowances
+Next is `transferFrom`, again we start with dynamic assertions checking for the `zeroAddress`, balances and allowances.
 
 ###### index.rsh
 ```js
-  .api_(ERC20.transferFrom, (from_, to, amount) => {
+  .api_(A.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(from_) >= amount, "amount must not be greater than balance");
@@ -441,11 +499,11 @@ Next is `transferFrom`, again we start with dynamic assertions checking for the 
   })
 ```
 
-After verifying assertions we can add the `return` to our `transferFrom` function. Again we omit the `PAY_EXPR` -- but this time update the `allowances` map and emit an `Approval` Event
+After verifying assertions we can add the `return` to our `transferFrom` function. Again we omit the `PAY_EXPR` -- but this time update the `allowances` map and emit an `Approval` Event as required by the ERC20 spec.
 
 ###### index.rsh
 ```js
-  .api_(ERC20.transferFrom, (from_, to, amount) => {
+  .api_(A.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(from_) >= amount, "amount must not be greater than balance");
@@ -463,18 +521,20 @@ After verifying assertions we can add the `return` to our `transferFrom` functio
 
 That completes our `transferFrom` function.
 
-The last function to implement is the `API` member function `approve`. We'll start with its heading and a dynamic check for the `zeroAddress`
+The last function to implement is the `API` member function `approve`. We'll start with its heading and a dynamic check for the `zeroAddress`.
+
 ###### index.rsh
 ```js
-  .api_(ERC20.approve, (spender, amount) => {
+  .api_(A.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
   })
 ```
 
 Then we add an update to the `allowances` map and emit an `Approval` Event. This code will be added to our `approve` function.
+
 ###### index.rsh
 ```js
-  .api_(ERC20.approve, (spender, amount) => {
+  .api_(A.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
     return[(k) => {
       allowances[[this, spender]] = amount;
@@ -485,7 +545,8 @@ Then we add an update to the `allowances` map and emit an `Approval` Event. This
   });
 ```
 
-This ends our `.rsh` file, though because of our infinite loop -- we never actually reach `exit`
+This ends our `.rsh` file, though because of our infinite loop -- we never actually reach `exit`.
+
 ###### index.rsh
 ```js
   commit();
@@ -496,6 +557,7 @@ This ends our `.rsh` file, though because of our infinite loop -- we never actua
 Now we can jump back to our frontend and implement some tests for our new functions.
 
 First a function to verify assertions about the balances of our accounts and their related Views.
+
 ###### index.mjs
 ```js
 const assertBalances = async (bal0, bal1, bal2, bal3) => {
@@ -507,7 +569,8 @@ const assertBalances = async (bal0, bal1, bal2, bal3) => {
 }
 ```
 
-Now a function to verify our Events
+Now a function to verify our Events.
+
 ###### index.mjs
 ```js
 const assertEvent = async (event, ...expectedArgs) => {
@@ -521,6 +584,7 @@ console.log('assertEvent complete');
 Now we'll define functions to use our `api` calls and include some calls to our `assert` functions.
 
 First is the `transfer` function, follwed by `transferFrom`. We defined our `API` namelessly in the `.rsh` file, so we can access it here in the frontend with `ctc.a.functionName`.
+
 ###### index.mjs
 ```js
 const transfer = async (fromAcc, toAcc, amt) => {
@@ -538,7 +602,8 @@ const transferFrom = async (spenderAcc, fromAcc, toAcc, amt, allowanceLeft) => {
 ```
 Notice these functions are calling our previously defined `assert` functions for verification using the frontend standard library.
 
-Now for the `a.approve` function. 
+Now for the `a.approve` function.
+
 ###### index.mjs
 ```js
 const approve = async (fromAcc, spenderAcc, amt) => {
@@ -551,6 +616,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 Finally, we can add some tests our program!
 
 We will test to our various functions for pass/fail scenarios. Listed here are all of the calls, we won't cover inputs from each and function names denote expected behavior.
+
 ###### index.mjs
 ```js
 // start testing
@@ -628,7 +694,8 @@ Now we can run our application.
 
 First set the connector mode to `ETH` with `export REACH_CONNECTOR_MODE=ETH`
 
-Then `../reach run` and you see output that looks like this
+Then `../reach run` and you see output that looks like this...
+
 ```
 > index
 > node --experimental-modules --unhandled-rejections=strict index.mjs
@@ -688,12 +755,12 @@ export const main = Reach.App(() => {
     }),
     deployed: Fun([Contract], Null),
   });
-  const ERC20 = API({
+  const A = API({
     transfer: Fun([Address, UInt], Bool),
     transferFrom: Fun([Address, Address, UInt], Bool),
     approve: Fun([Address, UInt], Bool),
   });
-  const vERC20 = View({
+  const v = View({
     name: Fun([], StringDyn),
     symbol: Fun([], StringDyn),
     decimals: Fun([], UInt),
@@ -701,7 +768,7 @@ export const main = Reach.App(() => {
     balanceOf: Fun([Address], UInt),
     allowance: Fun([Address, Address], UInt),
   });
-  const eERC20 = Events({
+  const E = Events({
     Transfer: [Address, Address, UInt],
     Approval: [Address, Address, UInt],
   });
@@ -714,10 +781,10 @@ export const main = Reach.App(() => {
   });
   D.interact.deployed(getContract());
 
-  vERC20.name.set(() => name);
-  vERC20.symbol.set(() => symbol);
-  vERC20.decimals.set(() => decimals);
-  vERC20.totalSupply.set(() => totalSupply);
+  V.name.set(() => name);
+  V.symbol.set(() => symbol);
+  V.decimals.set(() => decimals);
+  V.totalSupply.set(() => totalSupply);
 
   const balances = new Map(Address, UInt);
   const allowances = new Map(Tuple(Address, Address), UInt);
@@ -731,21 +798,21 @@ export const main = Reach.App(() => {
       const m_bal = balances[owner];
       return fromSome(m_bal, 0);
     }
-    vERC20.balanceOf.set(balanceOf);
+    V.balanceOf.set(balanceOf);
     const allowance = (owner, spender) => {
       const m_bal = allowances[[owner, spender]];
       return fromSome(m_bal, 0);
     }
-    vERC20.allowance.set(allowance);
+    V.allowance.set(allowance);
     const transfer_ = (from_, to, amount) => {
       balances[from_] = balanceOf(from_) - amount;
       balances[to] = balanceOf(to) + amount;
-      eERC20.Transfer(from_, to, amount);
+      E.Transfer(from_, to, amount);
     }
   })// end of define
   .invariant(balance() == 0)
   .while(true)
-  .api_(ERC20.transfer, (to, amount) => {
+  .api_(A.transfer, (to, amount) => {
     check(to != zeroAddress, 'ERC20: Transfer to zero address');
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
     return[(k) => {
@@ -754,7 +821,7 @@ export const main = Reach.App(() => {
       return [];
     }];
   })
-  .api_(ERC20.transferFrom, (from_, to, amount) => {
+  .api_(A.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(from_) >= amount, "amount must not be greater than balance");
@@ -763,16 +830,16 @@ export const main = Reach.App(() => {
       transfer_(from_, to, amount);
       const newAllowance = allowance(from_, this) - amount;
       allowances[[from_, this]] = newAllowance;
-      eERC20.Approval(from_, this, newAllowance);
+      E.Approval(from_, this, newAllowance);
       k(true);
       return [];
     }];
   })
-  .api_(ERC20.approve, (spender, amount) => {
+  .api_(A.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
     return [ (k) => {
       allowances[[this, spender]] = amount;
-      eERC20.Approval(this, spender, amount);
+      E.Approval(this, spender, amount);
       k(true);
       return [];
     }];
