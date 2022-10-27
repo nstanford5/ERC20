@@ -12,12 +12,12 @@ export const main = Reach.App(() => {
     }),
     deployed: Fun([Contract], Null),
   });
-  const ERC20 = API({
+  const A = API({
     transfer: Fun([Address, UInt], Bool),
     transferFrom: Fun([Address, Address, UInt], Bool),
     approve: Fun([Address, UInt], Bool),
   });
-  const vERC20 = View({
+  const V = View({
     name: Fun([], StringDyn),
     symbol: Fun([], StringDyn),
     decimals: Fun([], UInt),
@@ -25,7 +25,7 @@ export const main = Reach.App(() => {
     balanceOf: Fun([Address], UInt),
     allowance: Fun([Address, Address], UInt),
   });
-  const eERC20 = Events({
+  const E = Events({
     Transfer: [Address, Address, UInt],
     Approval: [Address, Address, UInt],
   });
@@ -38,16 +38,16 @@ export const main = Reach.App(() => {
   });
   D.interact.deployed(getContract());
 
-  vERC20.name.set(() => name);
-  vERC20.symbol.set(() => symbol);
-  vERC20.decimals.set(() => decimals);
-  vERC20.totalSupply.set(() => totalSupply);
+  V.name.set(() => name);
+  V.symbol.set(() => symbol);
+  V.decimals.set(() => decimals);
+  V.totalSupply.set(() => totalSupply);
 
   const balances = new Map(Address, UInt);
   const allowances = new Map(Tuple(Address, Address), UInt);
 
   balances[D] = totalSupply;
-  eERC20.Transfer(zeroAddress, D, totalSupply);
+  E.Transfer(zeroAddress, D, totalSupply);
 
   const [] = parallelReduce([])
   .define(() => {
@@ -55,21 +55,21 @@ export const main = Reach.App(() => {
       const m_bal = balances[owner];
       return fromSome(m_bal, 0);
     }
-    vERC20.balanceOf.set(balanceOf);
+    V.balanceOf.set(balanceOf);
     const allowance = (owner, spender) => {
       const m_bal = allowances[[owner, spender]];
       return fromSome(m_bal, 0);
     }
-    vERC20.allowance.set(allowance);
+    V.allowance.set(allowance);
     const transfer_ = (from_, to, amount) => {
       balances[from_] = balanceOf(from_) - amount;
       balances[to] = balanceOf(to) + amount;
-      eERC20.Transfer(from_, to, amount);
+      E.Transfer(from_, to, amount);
     }
   })// end of define
   .invariant(balance() == 0)
   .while(true)
-  .api_(ERC20.transfer, (to, amount) => {
+  .api_(A.transfer, (to, amount) => {
     check(to != zeroAddress, 'ERC20: Transfer to zero address');
     check(balanceOf(this) >= amount, "amount must not be greater than balance");
     return[(k) => {
@@ -78,7 +78,7 @@ export const main = Reach.App(() => {
       return [];
     }];
   })
-  .api_(ERC20.transferFrom, (from_, to, amount) => {
+  .api_(A.transferFrom, (from_, to, amount) => {
     check(from_ != zeroAddress, "ERC20: Transfer from zero address");
     check(to != zeroAddress, "ERC20: Transfer to zero address");
     check(balanceOf(from_) >= amount, "amount must not be greater than balance");
@@ -87,16 +87,16 @@ export const main = Reach.App(() => {
       transfer_(from_, to, amount);
       const newAllowance = allowance(from_, this) - amount;
       allowances[[from_, this]] = newAllowance;
-      eERC20.Approval(from_, this, newAllowance);
+      E.Approval(from_, this, newAllowance);
       k(true);
       return [];
     }];
   })
-  .api_(ERC20.approve, (spender, amount) => {
+  .api_(A.approve, (spender, amount) => {
     check(spender != zeroAddress, "ERC20: Approve to zero address");
     return [ (k) => {
       allowances[[this, spender]] = amount;
-      eERC20.Approval(this, spender, amount);
+      E.Approval(this, spender, amount);
       k(true);
       return [];
     }];

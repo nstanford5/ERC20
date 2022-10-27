@@ -42,7 +42,7 @@ functions to be called indefinitely. We'll implement the standard ERC20 function
 |approve(spender: address, amount: uint256): bool                  |
 |transferFrom(from: address, to: address, amount: uint256): bool   |
 |increaseAllowance(spender: address, addedvalue: uint256): bool    |
-|decreaseAllowance(spender: address, subtractedValue: uint256):bool|
+|decreaseAllowance(spender: address, subtractedValue: uint256): bool|
 |                                                                  |
 | Events:                                                          |
 |Transfer(from: address, to: address, value: uint256)              |
