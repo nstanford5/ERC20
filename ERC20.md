@@ -87,10 +87,12 @@ const D = Participant('Deployer', {
 
 Now that our problem is defined we can move on to designing our Reach program. It is best practice for Reach programs to consider the users of your application and their interaction with the contract account.
 
-## Who are the users in our application?
+## Program Design
+
+### Who are the users in our application?
 There will be one deployer who we will implement as a `Participant` and an unbounded number of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s
 
-## What are the steps of the program?
+### What are the steps of the program?
 The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
 
 Let's define our users.
