@@ -19,12 +19,39 @@ Working directory, where the reach shell script is installed in `Reach`
 
 ## Problem Analysis
 Our application is going to implement the ERC20 token spec and allow 
-functions to be called indefinitely. We'll implement transfer and approval functions for users.
+functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events.
+
+For convenience here are those funtions
+###### ERC20 UML
+|:----------------------------------------------------------------:|
+| Private                                                          |
+|:----------------------------------------------------------------:|
+|_balance: mapping(addres=>uint256)                                |
+|_allowances: mapping(address=>mapping(address=>uint256))          |
+|_totalSupply: uint256                                             |
+|_name: string                                                     |
+|_symbol: string                                                   |
+|:----------------------------------------------------------------:|
+|Public                                                            |
+|:----------------------------------------------------------------:|
+|constructor(name_: string, symbol_: string)                       |
+|name(): string                                                    |
+|symbol(): string                                                  |
+|decimals():uint8                                                  |  
+|totalSupply(): uint256                                            |
+|balanceOf(account: address): uint256                              |
+|transfer(to: address, amount: uint256): bool                      |
+|allowance(owner: address, spender: address): uint256              |
+|approve(spender: address, amount: uint256): bool                  |
+|transferFrom(from: address, to: address, amount: uint256): bool   |
+|increaseAllowance(spender: address, addedvalue: uint256): bool    |
+|decreaseAllowance(spender: address, subtractedValue: uint256):bool|
+|:----------------------------------------------------------------:|
 
 This program will implement an ownership database of our token. There will not be any external token transfers, we'll save that for the next iteration.
 
 ## Who are the users in our application?
-There must be one ```Participant``` to deploy the contract and the other users are best defined as `API`s.
+There will be one deployer who we will implement as a `Participant` and an unbounded member of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s
 
 ## What are the steps of the program?
 The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
@@ -179,7 +206,7 @@ As this DApp has been designed we will use the `balances` map as our database of
 
 Then we set the balance `Map` for the `Deployer` to the `totalSupply`
 
-Next we'll emit the Event for Transfer to the zero address.
+Next we'll emit the Event for Transfer from the zero address. This event shows the toekn has been mintend and given initial state.
 
 ###### index.rsh
 ```js
@@ -417,6 +444,7 @@ Next is `transferFrom`, again we start with dynamic assertions checking for the 
 ```
 
 After verifying assertions we can add the `return` to our `transferFrom` function. Again we omit the `PAY_EXPR` -- but this time update the `allowances` map and emit an `Approval` Event
+
 ###### index.rsh
 ```js
   .api_(ERC20.transferFrom, (from_, to, amount) => {
