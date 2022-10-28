@@ -174,7 +174,7 @@ The `transferFrom` method allows contracts to transfer tokens on your behalf and
 
 Now let's define our Views and Events. 
 
-Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make view would be token metadata, token balances and token allowances. We'll add this code to our `View`.
+Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make viewable would be token metadata, token balances and token allowances. We'll add this code to our `View`.
 
 ###### index.rsh
 ```js
