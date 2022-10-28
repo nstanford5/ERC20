@@ -241,7 +241,8 @@ Setting the token metadata to the `View`s, provides an easily accessible window 
 
 Next we'll create the `Map`s that hold balances and allowances for transfer. 
 
-The `balances` map will be our database of ownership.
+The `balances` map will be our database of ownership, so we set the balance map for the deployer to the `totalSupply`.
+
 
 ###### index.rsh
 ```js
@@ -250,8 +251,6 @@ The `balances` map will be our database of ownership.
 
   balances[D] = totalSupply;
 ```
-
-Then we set the balance map for the deployer to the `totalSupply`.
 
 Next we'll emit the Event for Transfer from the zero address. This event shows the token has been minted and given initial state.
 
