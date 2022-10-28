@@ -18,7 +18,8 @@ Working directory `~/Reach/erc20`, where the reach shell script is installed in 
 
 ## Problem Analysis
 Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events. They are listed here for reference.
-
+::::alongside
+:::alongsideColumn
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
 |                                                                  |
@@ -36,11 +37,11 @@ Our application is going to implement the [ERC20 token spec](https://eips.ethere
 | Events:                                                          |
 |Transfer(from: address, to: address, value: uint256)              |
 |Approval(owner: address, spender: address, value: uint256)        |
-
+:::
 ### How that looks in Reach
 
 Here is an overview of those same functions and values. We'll walk through each piece, so there is no need to copy this code yet.
-
+:::alongsideColumn
 ```js
 const D = Participant('Deployer', {
     meta: Object({
@@ -70,7 +71,8 @@ const D = Participant('Deployer', {
     Approval: [Address, Address, UInt],
   });
 ```
-
+:::
+::::
 #### Per the specifications:
 - The `Transfer` event MUST trigger when tokens are transferred, including zero value transfers.
 
@@ -147,7 +149,7 @@ We define the metadata as an Object with specified fields. More on [StringDyn](h
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
-Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These are the public functions from our UML diagram.
+Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These are the public functions from our UML diagram as defined by the ERC20 spec.
 
 We'll add this code to our `API`.
 
