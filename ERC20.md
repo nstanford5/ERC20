@@ -22,26 +22,16 @@ Our application is going to implement the [ERC20 token spec](https://eips.ethere
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
 |                                                                  |
-| Private:                                                         |
-|_balance: mapping(addres=>uint256)                                |
-|_allowances: mapping(address=>mapping(address=>uint256))          |
-|_totalSupply: uint256                                             |
-|_name: string                                                     |
-|_symbol: string                                                   |
-|                                                                  |
-| Public:                                                          |
-|constructor(name_: string, symbol_: string)                       |
-|name(): string                                                    |
-|symbol(): string                                                  |
-|decimals():uint8                                                  |  
-|totalSupply(): uint256                                            |
-|balanceOf(account: address): uint256                              |
-|transfer(to: address, amount: uint256): bool                      |
+| Methods:                                                         |
+|name() public view: string                                        |
+|symbol() public view: string                                      |
+|decimals() public view: uint8                                     |  
+|totalSupply() public view: uint256                                |
+|balanceOf(account: address) public view: uint256                  |
+|transfer(to: address, value: uint256) public : bool               |
+|transferFrom(from: address, to: address, value: uint256): bool    |
+|approve(spender: address, value: uint256): bool                   |
 |allowance(owner: address, spender: address): uint256              |
-|approve(spender: address, amount: uint256): bool                  |
-|transferFrom(from: address, to: address, amount: uint256): bool   |
-|increaseAllowance(spender: address, addedvalue: uint256): bool    |
-|decreaseAllowance(spender: address, subtractedValue: uint256): bool|
 |                                                                  |
 | Events:                                                          |
 |Transfer(from: address, to: address, value: uint256)              |
