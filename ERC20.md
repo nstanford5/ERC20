@@ -404,7 +404,7 @@ First, a function to check the balance and set the related View.
 
 Why do we use `fromSome()` here?
 
-`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` and `allowances` maps may exist or it may not. These are not unique to Reach and are generally referred to as option types, an important protection against null pointer references.
+`Map`s are the only variably sized container in Reach. This means that the value we are attempting to reference from the `balances` or `allowances` map may exist or it may not. These are not unique to Reach and are generally referred to as option types, an important protection against null pointer references.
 
 Option types in Reach are represented by the type [`Maybe`](https://docs.reach.sh/rsh/compute/#maybe) which has two possibilities -- `Some` and `None`. 
 
