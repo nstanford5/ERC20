@@ -18,30 +18,39 @@ Working directory `~/Reach/erc20`, where the reach shell script is installed in 
 
 ## Problem Analysis
 Our application is going to implement the [ERC20 token spec](https://eips.ethereum.org/EIPS/eip-20) and allow functions to be called indefinitely. We'll implement the standard ERC20 functions, Views and Events. They are listed here for reference.
-::::alongside
-:::alongsideColumn
+
 | ERC20 UML                                                        |
 |------------------------------------------------------------------|
 |                                                                  |
-| Methods:                                                         |
-|name() public view: string                                        |
-|symbol() public view: string                                      |
-|decimals() public view: uint8                                     |  
-|totalSupply() public view: uint256                                |
-|balanceOf(account: address) public view: uint256                  |
-|transfer(to: address, value: uint256) public : bool               |
-|transferFrom(from: address, to: address, value: uint256): bool    |
-|approve(spender: address, value: uint256): bool                   |
+| Private:                                                         |
+|_balance: mapping(addres=>uint256)                                |
+|_allowances: mapping(address=>mapping(address=>uint256))          |
+|_totalSupply: uint256                                             |
+|_name: string                                                     |
+|_symbol: string                                                   |
+|                                                                  |
+| Public:                                                          |
+|constructor(name_: string, symbol_: string)                       |
+|name(): string                                                    |
+|symbol(): string                                                  |
+|decimals():uint8                                                  |  
+|totalSupply(): uint256                                            |
+|balanceOf(account: address): uint256                              |
+|transfer(to: address, amount: uint256): bool                      |
 |allowance(owner: address, spender: address): uint256              |
+|approve(spender: address, amount: uint256): bool                  |
+|transferFrom(from: address, to: address, amount: uint256): bool   |
+|increaseAllowance(spender: address, addedvalue: uint256): bool    |
+|decreaseAllowance(spender: address, subtractedValue: uint256): bool|
 |                                                                  |
 | Events:                                                          |
 |Transfer(from: address, to: address, value: uint256)              |
 |Approval(owner: address, spender: address, value: uint256)        |
-:::
+
 ### How that looks in Reach
 
 Here is an overview of those same functions and values. We'll walk through each piece, so there is no need to copy this code yet.
-:::alongsideColumn
+
 ```js
 const D = Participant('Deployer', {
     meta: Object({
@@ -71,8 +80,7 @@ const D = Participant('Deployer', {
     Approval: [Address, Address, UInt],
   });
 ```
-:::
-::::
+
 #### Per the specifications:
 - The `Transfer` event MUST trigger when tokens are transferred, including zero value transfers.
 
@@ -86,7 +94,7 @@ Now that our problem is defined we can move on to designing our Reach program. I
 There will be one deployer who we will implement as a `Participant` and an unbounded number of users who will interact with the contract to transfer tokens. These interactions are best implemented as `API`s.
 
 ### What are the steps of the program?
-The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty parallelReduce with special considerations.
+The program will first accept the token metadata and parameters and then allow our `API` member functions to be called indefinitely. This means we'll use the mighty `parallelReduce` with special considerations.
 
 Let's define our users.
 
@@ -149,7 +157,10 @@ We define the metadata as an Object with specified fields. More on [StringDyn](h
 
 Then we define a `deployed` function to notify the frontend of contract deployment. This is a best practice when building Reach DApps. It prevents frontend interaction that relies on a deployed contract before it is complete.
 
-Now we consider what functions our `API` members will use. They need to `transfer` `transferFrom` and `approve`. These are the public functions from our UML diagram as defined by the ERC20 spec.
+Now we consider what functions our `API` members will use. 
+They need to `transfer` `transferFrom` and `approve`. 
+These are the public functions from our UML diagram.
+//here I might want to know why I need to use these functions
 
 We'll add this code to our `API`.
 
@@ -166,7 +177,9 @@ The `transferFrom` method allows contracts to transfer tokens on your behalf and
 
 Now let's define our Views and Events. 
 
-Views make information on the blockchain easier to access, they do not provide any values that were not previously available. Good information to make viewable would be token metadata, token balances and token allowances. We'll add this code to our `View`.
+Views make information on the blockchain easier to access, they do not provide any values that were not previously available. 
+Good information to make viewable would be token metadata, token balances and token allowances. We'll add this code to our `View`.
+//here This is passive
 
 ###### index.rsh
 ```js
@@ -244,16 +257,18 @@ The `balances` map will be our database of ownership, so we set the balance map 
   balances[D] = totalSupply;
 ```
 
-Next we'll emit the Event for Transfer from the zero address. This event shows the token has been minted and given initial state.
+Next we'll emit the Event for Transfer from the zero address. 
+This event shows the token has been minted and given initial state.
 
 ###### index.rsh
 ```js
   E.Transfer(zeroAddresss, D, totalSupply);
 ```
 
-Before we go any further in our `rsh` file, let's jump back the frontend `mjs` file.
+Before we go any further in our `rsh` file, let's jump into the frontend `mjs` file.
 
-We'll start with necessary imports and verify EVM connector setting. This DApp has two features that are not yet supported on Algorand.
+We'll start with necessary imports and verify the EVM connector setting. 
+This DApp has two features that are not yet supported on Algorand.
 - Maps with keys other than Addresses
 - Dynamically sized data (StringDyn)
 
@@ -265,8 +280,8 @@ import * as backend from './build/index.main.mjs';
 import {loadStdlib} from '@reach-sh/stdlib';
 const stdlib = loadStdlib(process.env);
 
-if(stdlib.connector !== 'ETH'){
-  console.log('Sorry, this program only works on EVM networks for now');
+if (stdlib.connector !== 'ETH') {
+  console.log('Sorry, this program only works on EVM networks for now.');
   process.exit(0);
 };
 ```
@@ -284,7 +299,7 @@ Next, let's write some test functions. We of course want to test that they pass 
 ###### index.mjs
 ```js
 const assertFail = async (promise) => {
-  try{
+  try {
     await promise;
   } catch (e) {
     return;
@@ -293,7 +308,9 @@ const assertFail = async (promise) => {
 };
 ```
 
-Next is a helper function to verify equality. UInts returned from `API`s and `Views` are represented as bigNumbers, this helper lets us use them interchangeably. [JavaScript type representations](https://docs.reach.sh/frontend/#p_6) in Reach.
+Next is a helper function to verify equality. 
+UInts returned from `API`s and `Views` are represented as bigNumbers, this helper lets us use them interchangeably. 
+[JavaScript type representations](https://docs.reach.sh/frontend/#p_6) in Reach. //here Maybe a bit of an intro or context around this? Just dropping it could create confusion.
 
 ###### index.mjs
 ```js
@@ -309,12 +326,13 @@ const assertEq = (a, b, context = "assertEq") => {
 ```
 
 Now let's create a function to handle deploying our contract and any errors we may encounter. [Music Break](https://youtu.be/7JR10AThY8M)
+//here that's fun. It'd be better if you incorporated "start me up" or "start it up" into the sentence and then just provide the link like an Easter egg :). Lowest effort would be "...create a function, [startMeUp](link), to handle..."
 
 ###### index.mjs
 ```js
 const startMeUp = async (ctc, meta) => {
   const flag = "startup success throw flag"
-  try{
+  try {
     await ctc.p.Deployer({
       meta,
       deployed: (ctc) => {
@@ -322,7 +340,7 @@ const startMeUp = async (ctc, meta) => {
       },
     });
   } catch (e) {
-    if (e !== flag){
+    if (e !== flag) {
       throw e;
     }
   }
@@ -343,7 +361,7 @@ Now we can setup our token metadata in an object to eventually be passed to the 
 
 ###### index.mjs
 ```js
-const totalSupply = 1000_00;
+const totalSupply = 100_000; //here _ was misplaced 
 const decimals = 2;
 const meta = {
   name: "ERC20Coin",
@@ -364,7 +382,7 @@ const ctcInfo = await ctc0.getInfo();
 const ctc = (acc) => acc.contract(backend, ctcInfo);
 ```
 
-We have all of our users created now and the contract is deployed. Now we can go back to our `.rsh` file.
+We have all of our users created now and the contract is deployed. Now we can go back to our `.rsh` file. //here oddly worded
 
 The next thing we want to do is create the functionality for our `apis`. Given that we have many users who need to do something, we want a `parallelReduce`. 
 
@@ -378,7 +396,7 @@ We could use a `while` loop with a `fork`, but `parallelReduce` is a more conven
 ```
 The only values that need to be tracked in the program are the balances and allowances, so the `parallelReduce` does not need to track any values.
 
-The `define` block of our parallelReduce will be used to define some helper functions.
+The `define` block of our `parallelReduce` will be used to define some helper functions.
 
 First, a function to check the balance and set the related View.
 
