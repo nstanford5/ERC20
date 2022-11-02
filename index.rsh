@@ -10,7 +10,7 @@ export const main = Reach.App(() => {
       totalSupply: UInt,
       zeroAddress: Address,
     }),
-    deployed: Fun([Contract], Null),
+    launched: Fun([Contract], Null),
   });
   const A = API({
     transfer: Fun([Address, UInt], Bool),
@@ -36,7 +36,7 @@ export const main = Reach.App(() => {
   D.publish(name, symbol, decimals, totalSupply, zeroAddress).check(() => {
     check(decimals < 256, 'decimals fits in UInt8');
   });
-  D.interact.deployed(getContract());
+  D.interact.launched(getContract());
 
   V.name.set(() => name);
   V.symbol.set(() => symbol);
@@ -66,7 +66,7 @@ export const main = Reach.App(() => {
       balances[to] = balanceOf(to) + amount;
       E.Transfer(from_, to, amount);
     }
-  })// end of define
+  })
   .invariant(balance() == 0)
   .while(true)
   .api_(A.transfer, (to, amount) => {

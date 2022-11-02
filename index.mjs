@@ -35,7 +35,7 @@ const startMeUp = async (ctc, meta) => {
   try {
     await ctc.p.Deployer({
       meta,
-      deployed: (ctc) => {
+      launched: (ctc) => {
         throw flag;
       },
     });
@@ -51,7 +51,7 @@ const accs = await stdlib.newTestAccounts(4, stdlib.parseCurrency(100));
 const [acc0, acc1, acc2, acc3] = accs;
 const [addr0, addr1, addr2, addr3] = accs.map(a => a.getAddress());
 
-const totalSupply = 1000_00;
+const totalSupply = 100_000;
 const decimals = 2;
 const meta = {
   name: "Coinzz",
@@ -67,7 +67,6 @@ console.log('Completed startMeUp');
 
 const ctcinfo = await ctc0.getInfo();
 const ctc = (acc) => acc.contract(backend, ctcinfo);
-console.log('finised getting contract handles');
 
 const assertBalances = async (bal0, bal1, bal2, bal3) => {
   assertEq(bal0, (await ctc0.v.balanceOf(acc0.getAddress()))[1]);
@@ -105,7 +104,7 @@ const approve = async (fromAcc, spenderAcc, amt) => {
 };
 
 
-console.log("Starting tests...")
+console.log("Starting tests...");
 
 // initial transfer event upon minting (when launching contract)
 await assertEvent("Transfer", zeroAddress, acc0.getAddress(), totalSupply);
