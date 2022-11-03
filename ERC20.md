@@ -25,7 +25,7 @@ Our application is going to implement the [ERC20 token spec](https://eips.ethere
 | Public:                                                          |
 |name(): string                                                    |
 |symbol(): string                                                  |
-|decimals():uint8                                                  |  
+|decimals(): uint8                                                 |  
 |totalSupply(): uint256                                            |
 |balanceOf(account: address): uint256                              |
 |transfer(to: address, amount: uint256): bool                      |
@@ -57,7 +57,7 @@ const D = Participant('Deployer', {
     transferFrom: Fun([Address, Address, UInt], Bool),
     approve: Fun([Address, UInt], Bool),
   });
-  const v = View({
+  const V = View({
     name: Fun([], StringDyn),
     symbol: Fun([], StringDyn),
     decimals: Fun([], UInt),
